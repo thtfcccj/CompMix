@@ -27,7 +27,7 @@
 #endif
 //连续脉发连续输出时周期, 此周期*PERIOD_PWM_GEN_PERIOD_OV为连续时间
 #ifndef PERIOD_PWM_GEN_CONTINUITY_COUNT
-  #define PERIOD_PWM_GEN_CONTINUITY_COUNT    5
+  #define PERIOD_PWM_GEN_CONTINUITY_COUNT    2
 #endif
 
 /***************************************************************************
