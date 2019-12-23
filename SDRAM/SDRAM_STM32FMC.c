@@ -11,9 +11,11 @@
 
 //内部相关配置参数(应用决定)：
 #define SDRAM_MEMORY_WIDTH    FMC_SDMemory_Width_16b 
-#define SDRAM_CAS_LATENCY     FMC_CAS_Latency_3
+#define SDRAM_CAS_LATENCY     FMC_CAS_Latency_3      //EM638165:2or3clk
 #define SDCLOCK_PERIOD        FMC_SDClock_Period_2 
-#define SDRAM_READBURST       FMC_Read_Burst_Disable
+#define SDRAM_READBURST       FMC_Read_Burst_Enable
+
+#define FMC_COMMAND_TARGET_BANK     FMC_Command_Target_bank2
 
 static void _InitSequence(void);//初始化SDRAM时序
 
@@ -51,19 +53,19 @@ void SDRAM_Init(void)
 /* FMC SDRAM Bank configuration */   
   /* Timing configuration for 90 Mhz of SD clock frequency (180Mhz/2) */
   /* TMRD: 2 Clock cycles */
-  FMC_SDRAMTimingInitStructure.FMC_LoadToActiveDelay    = 2;      
+  FMC_SDRAMTimingInitStructure.FMC_LoadToActiveDelay    = 2;//EM638165:2clk      
   /* TXSR: min=70ns (7x11.11ns) */
-  FMC_SDRAMTimingInitStructure.FMC_ExitSelfRefreshDelay = 7;
-  /* TRAS: min=42ns (4x11.11ns) max=120k (ns) */
-  FMC_SDRAMTimingInitStructure.FMC_SelfRefreshTime      = 4;
+  FMC_SDRAMTimingInitStructure.FMC_ExitSelfRefreshDelay = 7;//EM638165:(66+2)/(77+2)ns
+  /* TRAS: min=50ns (4x11.11ns) max=120k (ns) */
+  FMC_SDRAMTimingInitStructure.FMC_SelfRefreshTime      = 5;//EM638165:48/56ns  
   /* TRC:  min=70 (7x11.11ns) */        
-  FMC_SDRAMTimingInitStructure.FMC_RowCycleDelay        = 7;         
+  FMC_SDRAMTimingInitStructure.FMC_RowCycleDelay        = 7;//EM638165:66/77ns         
   /* TWR:  min=1+ 7ns (1+1x11.11ns) */
-  FMC_SDRAMTimingInitStructure.FMC_WriteRecoveryTime    = 2;      
-  /* TRP:  20ns => 2x11.11ns */
-  FMC_SDRAMTimingInitStructure.FMC_RPDelay              = 2;                
-  /* TRCD: 20ns => 2x11.11ns */
-  FMC_SDRAMTimingInitStructure.FMC_RCDDelay             = 2;
+  FMC_SDRAMTimingInitStructure.FMC_WriteRecoveryTime    = 2;//EM638165:2clk
+  /* TRP:  30ns => 2x11.11ns */
+  FMC_SDRAMTimingInitStructure.FMC_RPDelay              = 2;//EM638165:18/21ns                
+  /* TRCD: 30ns => 2x11.11ns */
+  FMC_SDRAMTimingInitStructure.FMC_RCDDelay             = 3;//EM638165:24ns
 
 /* FMC SDRAM control configuration */
   FMC_SDRAMInitStructure.FMC_Bank = FMC_Bank2_SDRAM;
@@ -94,11 +96,13 @@ static void _InitSequence(void)
 {
   FMC_SDRAMCommandTypeDef FMC_SDRAMCommandStructure;
   uint32_t tmpr = 0;
-  
-/* Step 3 --------------------------------------------------------------------*/
+  /* Step 1: 初始化初始化GPIO引脚以及FMC时钟（已完成） */ 
+  /* Step 2: 时序结构体赋值（已完成）  */ 
+
+  /* Step 3 --------------------------------------------------------------------*/
   /* Configure a clock configuration enable command */
   FMC_SDRAMCommandStructure.FMC_CommandMode = FMC_Command_Mode_CLK_Enabled;
-  FMC_SDRAMCommandStructure.FMC_CommandTarget = FMC_Command_Target_bank2;
+  FMC_SDRAMCommandStructure.FMC_CommandTarget = FMC_COMMAND_TARGET_BANK;
   FMC_SDRAMCommandStructure.FMC_AutoRefreshNumber = 1;
   FMC_SDRAMCommandStructure.FMC_ModeRegisterDefinition = 0;
   /* Wait until the SDRAM controller is ready */ 
@@ -110,12 +114,12 @@ static void _InitSequence(void)
   
 /* Step 4 --------------------------------------------------------------------*/
   /* Insert 100 ms delay */
-  Delay_Ms(10);
+  Delay_Ms(100);
     
 /* Step 5 --------------------------------------------------------------------*/
   /* Configure a PALL (precharge all) command */ 
   FMC_SDRAMCommandStructure.FMC_CommandMode = FMC_Command_Mode_PALL;
-  FMC_SDRAMCommandStructure.FMC_CommandTarget = FMC_Command_Target_bank2;
+  FMC_SDRAMCommandStructure.FMC_CommandTarget = FMC_COMMAND_TARGET_BANK;
   FMC_SDRAMCommandStructure.FMC_AutoRefreshNumber = 1;
   FMC_SDRAMCommandStructure.FMC_ModeRegisterDefinition = 0;
   /* Wait until the SDRAM controller is ready */ 
@@ -128,8 +132,8 @@ static void _InitSequence(void)
 /* Step 6 --------------------------------------------------------------------*/
   /* Configure a Auto-Refresh command */ 
   FMC_SDRAMCommandStructure.FMC_CommandMode = FMC_Command_Mode_AutoRefresh;
-  FMC_SDRAMCommandStructure.FMC_CommandTarget = FMC_Command_Target_bank2;
-  FMC_SDRAMCommandStructure.FMC_AutoRefreshNumber = 4;
+  FMC_SDRAMCommandStructure.FMC_CommandTarget = FMC_COMMAND_TARGET_BANK;
+  FMC_SDRAMCommandStructure.FMC_AutoRefreshNumber = 4;//or2?
   FMC_SDRAMCommandStructure.FMC_ModeRegisterDefinition = 0;
   /* Wait until the SDRAM controller is ready */ 
   while(FMC_GetFlagStatus(FMC_Bank2_SDRAM, FMC_FLAG_Busy) != RESET)
@@ -155,7 +159,7 @@ static void _InitSequence(void)
   
   /* Configure a load Mode register command*/ 
   FMC_SDRAMCommandStructure.FMC_CommandMode = FMC_Command_Mode_LoadMode;
-  FMC_SDRAMCommandStructure.FMC_CommandTarget = FMC_Command_Target_bank2;
+  FMC_SDRAMCommandStructure.FMC_CommandTarget = FMC_COMMAND_TARGET_BANK;
   FMC_SDRAMCommandStructure.FMC_AutoRefreshNumber = 1;
   FMC_SDRAMCommandStructure.FMC_ModeRegisterDefinition = tmpr;
   /* Wait until the SDRAM controller is ready */ 
