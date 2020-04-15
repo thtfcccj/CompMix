@@ -71,7 +71,7 @@ struct _MultitonAPI{
   MultitonAPI_GetData_t GetData;         //得到读写数据(一般为配置，有时称为对称性数据)
   MultitonAPI_GetDataOnly_t GetDataOnly; //得到只读性数据
   MultitonAPI_SetData_t SetData;         //设置读写数据(一般为配置，有时称为对称性数据)
-  MultitonAPI_ExeCmd_t ExeCmd;           //执行本地指令(只写,UI/层显等控制本机时需实现)
+  MultitonAPI_ExeCmd_t ExeCmd;           //执行指令
   //UI用:
   MultitonAPI_GetDataMin_t GetDataMin;    //得到读写数据最小值(配置时使用)
   MultitonAPI_GetDataMax_t GetDataMax;    //得到读写数据最大值(配置时使用)

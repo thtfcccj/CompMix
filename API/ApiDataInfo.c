@@ -14,7 +14,7 @@ static const unsigned char _StdTypeLenLut[] = {
   0, //0字符串型,长度由结束字符决定  
   4, //1单浮点数型,点用4Byte
   8, //2双浮点数型,点用8Byte
-  2, //3两个独立Byte型
+  3, //3两个独立Byte型
   //未定义
  
 

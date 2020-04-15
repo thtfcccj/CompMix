@@ -68,8 +68,8 @@
 #define API_DI_STD_SF       (API_DI_TYPE_OTHER | API_DI_OTHER_STD | 0x01) 
 //双浮点数型,点用8Byte
 #define API_DI_STD_DF       (API_DI_TYPE_OTHER | API_DI_OTHER_STD | 0x02)
-//两个独立Byte型
-#define API_DI_STD_B2       (API_DI_TYPE_OTHER | API_DI_OTHER_STD | 0x03)
+//3个独立Byte型
+#define API_DI_STD_B3       (API_DI_TYPE_OTHER | API_DI_OTHER_STD | 0x03)
 //以下可继续扩展:
     
 //标准类型结束位置(不含):     
@@ -96,6 +96,7 @@
 #define API_DI_WR_WAIT    0  //等待结果(中转是为此状态)
 #define API_DI_WR_FINAL   1  //写成功
 #define API_DI_WR_ERR_IN  2  //输入信息不全
+#define API_DI_WR_ERR_OV  3  //输入数据不符合规则   
 #define API_DI_WR_ARY_OV  6  //阵列ID超限
 #define API_DI_WR_UNDDEF  7  //未定义
 
