@@ -16,7 +16,7 @@ struct _Test Test;          //直接实例化
 void Test_Task(void)
 {
   if(!Test.Index){
-    if(Led_IsTest()) Test_Set();//检查测试标志
+    if(Led_IsTest()) Test_Set();
     return;
   }
   Test.Index--;
@@ -29,5 +29,5 @@ void Test_Task(void)
 void Test_Clr(void)
 {
   Test.Index = 0;
-  Test_ExitNotify();//清指示灯
+  Test_ExitNotify();
 }
