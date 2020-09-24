@@ -7,6 +7,16 @@
   portTickType NeedTime;  //临时统计段程序的执行时间
 #endif
 
+#if defined(SYSTICK_T24)
+  #define SYS_TIMER_OV   SYSTICK_T24
+#elif defined(SUPPORT_HC32)
+  #define SYS_TIMER_OV   (0x10000 * 1000)  // base 1ms
+#elif defined(SUPPORT_PIC)
+  #define SYS_TIMER_OV   0xFFFFFF         //base 256us
+#else
+  #define SYS_TIMER_OV   0xFFFFFF         //base 256us
+#endif
+
 //--------------------检查一周期时间是否到函数---------------------
 //#返回0 : 一周期时间未到
 //#返回非0 : 一周期时间到
@@ -21,7 +31,7 @@ signed char LoopTimerProIsOv(portTickType *pTimerStart,//上次时间
       return 0; //一周期没到
   }
   //回环后检查
-  else if(((portTickType)0xFFFFFF - TimerStart + Timer) < TimerCount){
+  else if(((portTickType)SYS_TIMER_OV - TimerStart + Timer) < TimerCount){
       return 0; //一周期没到
   }
   *pTimerStart = Timer;   //更新当前时间
@@ -37,6 +47,6 @@ portTickType GetPeriodTick(portTickType *pTimerStart)//上次时间
   if(Timer > TimerStart)
      return Timer - TimerStart;
   //回环后时间 
-  return (portTickType)0xFFFFFF - TimerStart + Timer;
+  return (portTickType)SYS_TIMER_OV - TimerStart + Timer;
 }
 

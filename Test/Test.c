@@ -15,19 +15,23 @@ struct _Test Test;          //直接实例化
 //放入256ms进程中扫描
 void Test_Task(void)
 {
-  if(!Test.Index){
-    if(Led_IsTest()) Test_Set();//检查测试标志
-    return;
-  }
+  if(!Test.Index) return;
   Test.Index--;
   if(!Test.Index){
-    Test_Clr();
+    Test_cbExitNotify();
   }
+}
+
+//-------------------------开始测试函数-------------------------------
+void Test_Start(void)
+{
+  Test.Index = TEST_COUNT;
+  Test_cbStartNotify();
 }
 
 //----------------------强制清测试状态函数---------------------------
 void Test_Clr(void)
 {
   Test.Index = 0;
-  Test_ExitNotify();//清指示灯
+  Test_cbExitNotify();
 }

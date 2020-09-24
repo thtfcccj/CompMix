@@ -10,9 +10,16 @@
 		                      相关配置
 ***********************************************************************/
 
+//是否支持测试起始回调，全局里定义
+//#define SUPPORT_TEST_NOTIFY    
+
+
 #ifndef TEST_COUNT
   #define	TEST_COUNT          8      //定义测试持续时间
 #endif
+                            
+
+
 
 /***********************************************************************
 		                      相关结构
@@ -36,24 +43,36 @@ extern struct _Test Test;          //直接实例化
 //放入256ms进程中扫描
 void Test_Task(void);
 
-//----------------------置测试状态函数-------------------------------
-#define Test_Set() do{Test.Index = TEST_COUNT;}while(0)
+//-------------------------开始测试函数---------------------------
+void Test_Start(void);
 
-//----------------------强制清测试状态函数---------------------------
+//----------------------强制清测试状态函数------------------------
 void Test_Clr(void);
 
-//----------------------判断测试状态函数-------------------------------
+//----------------------判断测试状态函数---------------------------
 #define Test_IsDoing() (Test.Index)
 
 /***********************************************************************
 		                     回调函数
 ***********************************************************************/
 
-//----------------------测试结束通报函数-------------------------------
-#ifdef SUPPORT_LED
-  #include "Led.h"//Led_IsTest()
-  #define Test_ExitNotify() Led_ClrTest()   //清指示灯
+//----------------------测试开始通报函数-------------------------------
+#ifndef SUPPORT_TEST_NOTIFY
+  #define Test_cbStartNotify() do{}while(0)
+#else
+  void Test_cbStartNotify(void);
 #endif
 
+//----------------------测试结束通报函数-------------------------------
+#ifndef SUPPORT_TEST_NOTIFY
+  #define Test_cbExitNotify() do{}while(0)  
+#else 
+  #ifdef SUPPORT_LED //直接实现以加快效率
+    #include "Led.h"
+    #define Test_cbExitNotify() Led_ClrTest()   //清指示灯
+  #else
+    void Test_cbExitNotify(void);
+  #endif
+#endif
 
 #endif
