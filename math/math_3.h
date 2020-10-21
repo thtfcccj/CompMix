@@ -91,11 +91,16 @@ unsigned char *pMsbS2FullAry(const unsigned short *psData,
 unsigned short MsbFull2S(const unsigned char *pData);
 
 //--------------------MSB方式数据转换为short型数组函数--------------------
-//返回处理结束位置
-const unsigned char *pMsbFull2SAry(unsigned short *psData,
-                                    unsigned short Len, //short长度
-                                    const unsigned char *pcData);
+//返回是1否0有变动
+signed char MsbFull2SAry(unsigned short *psData,
+                         unsigned short Len, //short长度
+                         const unsigned char *pcData);
 
+//----------------------------查找双字节字符所在位置-------------------------
+//返回找到位置，>=查找表大小时表示未找到
+unsigned short FindUsPos(const unsigned short *pLUT, //查找表
+                           unsigned short LutLen,     //查找表长度
+                           unsigned short Id);         //要查找的ID号
 
 #endif
 

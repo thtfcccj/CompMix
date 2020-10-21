@@ -242,19 +242,36 @@ unsigned short MsbFull2S(const unsigned char *pData)
 }
 
 //--------------------MSB方式数据转换为short型数组函数--------------------
-//返回处理结束位置
-const unsigned char *pMsbFull2SAry(unsigned short *psData,
-                                    unsigned short Len, //short长度
-                                    const unsigned char *pcData)
+//返回是1否0有变动
+signed char MsbFull2SAry(unsigned short *psData,
+                         unsigned short Len, //short长度
+                         const unsigned char *pcData)
 {
+  signed char Resume = 0;
   //为保证对齐，没有用memcpy;
-  for(; Len > 0; Len--){
+  for(; Len > 0; Len--, psData++){
     unsigned short Data;
     Data = (unsigned short)(*pcData++) << 8;
     Data |= (unsigned short)(*pcData++); 
-    *psData++ = Data;
+    if(*psData != Data){//有变化了
+      *psData = Data;
+      Resume = -1;
+    }
   }
-  return pcData; 
+  return Resume; 
+}
+
+//----------------------------查找双字节字符所在位置-------------------------
+//返回找到位置，>=查找表大小时表示未找到
+unsigned short FindUsPos(const unsigned short *pLUT, //查找表
+                           unsigned short LutLen,     //查找表长度
+                           unsigned short Id)         //要查找的ID号
+{
+  unsigned short Pos = 0;
+  for(; Pos < LutLen; Pos++, pLUT++){
+    if(*pLUT == Id) break;
+  }
+  return Pos;
 }
 
 
