@@ -7,6 +7,7 @@
 #include "Eeprom.h"
 #include "InfoBase.h"
 #include "IoCtrl.h"
+#include "Restore.h"
 
 /*****************************************************************************
                           相关函数实现
@@ -48,7 +49,7 @@ void Restore_SetCfgMode(void)
 void Restore_ClrCfgMode(void)
 {
   //SysFlag &= ~SYS_FLAG_CFG_MODE;  //正常工作模式
-  unsigned char InitedFlag = 0x5a; //正常模式标志  
+  unsigned char InitedFlag = RESTORE_INITED_FLAG; //正常模式标志  
   Eeprom_Wr(InfoBase_GetInitedFlagBase(), &InitedFlag, 1);
   Eeprom_ForceWrBufAndRestart();//强制回写并重启
 }
