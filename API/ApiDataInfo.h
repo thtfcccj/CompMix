@@ -111,6 +111,13 @@
 #define API_DI_CMD_ERR_STATE  6  //状态不满足
 #define API_DI_CMD_UNDDEF  7  //未定义
 
+//Api带参数指令参数缓冲,主要用于通讯需要，但设备层不需要此参数的应用场合
+struct _ApiCmdParaBuf{
+  unsigned short DevId;  //指定设备
+  unsigned char FunId;   //功能码
+  unsigned char Para[3]; //缓冲的参灵敏
+};   
+    
 /***********************************************************************
                              相关函数
 ***********************************************************************/
