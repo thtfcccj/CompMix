@@ -27,8 +27,10 @@
 #define ZIP_TIME_MOUTH_SHIFT   22
 #define ZIP_TIME_MOUTH_MASK    ((unsigned long)0x0f << ZIP_TIME_MOUTH_SHIFT) 
 //年：为相对值，范围0-64,起始年由回调函数决定
+#define ZIP_TIME_YEAR_COUNT   0x3f  //最大表示范围
 #define ZIP_TIME_YEAR_SHIFT   26
-#define ZIP_TIME_YEAR_MASK    ((unsigned long)0x3f << ZIP_TIME_YEAR_SHIFT) 
+#define ZIP_TIME_YEAR_MASK    ((unsigned long)ZIP_TIME_YEAR_COUNT << ZIP_TIME_YEAR_SHIFT)
+ 
 
 extern unsigned long RtcZipTime; //当前实时时间
 
