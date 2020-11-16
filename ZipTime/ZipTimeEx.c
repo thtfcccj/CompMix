@@ -21,7 +21,7 @@ static unsigned short _SubStdDay(unsigned long ZipTime)
   //加上闰年天数,当年不算,2000年是闰年
   if(Year) Day  += ((Year - 1) / 4) + 1; 
   //得到整月的天数,当月不算
-  unsigned short Mon = (unsigned char)((ZipTime & ((long)0xf << 21)) >> 21);
+  unsigned short Mon = (unsigned char)((ZipTime & ZIP_TIME_MOUTH_MASK) >> ZIP_TIME_MOUTH_SHIFT);
   if(Mon > 1){
     Mon--;
     if(Mon >= 2){//2月份检查闰月,是则先加1天
