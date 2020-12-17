@@ -255,7 +255,7 @@ signed char MsbFull2SAry(unsigned short *psData,
     Data |= (unsigned short)(*pcData++); 
     if(*psData != Data){//有变化了
       *psData = Data;
-      Resume = -1;
+      Resume = 1;
     }
   }
   return Resume; 
