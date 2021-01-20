@@ -29,7 +29,7 @@ void ShortMng_Task(struct _ShortMng *pPow, unsigned char Ch) //对应通道
       pPow->Flag = (ShortCount << SHORT_MNG_PROTECT_COUNT_SHIFT) | 
                     SHORT_MNG_STATE_BREAK;
       ShortMng_cbBreak(Ch);//断开连接
-      if(ShortCount >= 8) pPow->Timer = 255;//最长了
+      if(ShortCount >= 7) pPow->Timer = 255;//最长了
       else pPow->Timer = SHORT_MNG_PTC_WAIT + (1 << ShortCount);
       //状态改变通报
       ShortMng_cbStateNotify(Ch, SHORT_MNG_STATE_SHUT, SHORT_MNG_STATE_BREAK);

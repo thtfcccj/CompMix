@@ -4,6 +4,7 @@
 
 *******************************************************************************/
 #include "ShortMngAry.h"
+#include "IoCtrl.h"
 
 struct _ShortMngAry ShortMngAry;
 static unsigned char _CurCh;//当前巡检通道
@@ -15,9 +16,11 @@ static unsigned char _CurCh;//当前巡检通道
 //形参为总的上电延时时间，用于分时上电
 void ShortMngAry_Init(unsigned char ShutDelay)
 {
+  CfgPo();//电源管理IO初始化
   _CurCh = 0;
   for(unsigned char Ch = 0; Ch < SHORT_MNG_ARY_COUNT; Ch++){
     ShortMng_Init(&ShortMngAry.ShortMng[Ch], ShutDelay); 
+    ShutDelay++;
   }
 }
 

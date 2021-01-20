@@ -79,9 +79,9 @@ void MVC_Task(void)
     unsigned char ChInfo = _VcLut[Vc][Ch];
     unsigned long Cr;
     if(ChInfo & 0x80)//负端引入
-      Cr = ((unsigned long)(ChInfo & 0x7f) << 4) | GetVcCrCfgN();
+      Cr = ((unsigned long)(ChInfo & 0x7f) << 4) | GetVcCrCfgN(Vc);
     else //正端引入
-      Cr = ChInfo | GetVcCrCfgP();
+      Cr = ChInfo | GetVcCrCfgP(Vc);
     if(Vc == 0) M0P_VC->VC0_CR = Cr;
     else if(Vc == 1) M0P_VC->VC1_CR = Cr;
     else M0P_VC->VC2_CR = Cr; 
