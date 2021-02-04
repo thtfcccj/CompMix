@@ -71,6 +71,13 @@ void ShortMng_Task(struct _ShortMng *pPow, unsigned char Ch) //对应通道
   }
 }
 
+//-------------------------------置为掉电模式------------------------------
+void ShortMng_ShutDown(struct _ShortMng *pPow, unsigned char Ch)//对应通道
+{
+  ShortMng_cbBreak(Ch);//强制断开
+  pPow->Flag = 0;    //预置开机模式
+  pPow->Timer = Ch;  //延时为通道
+}
 
 
 

@@ -42,6 +42,9 @@ void ShortMngAry_Init(unsigned char ShutDelay);
 //放入128msS附近任务中扫描
 void ShortMngAry_Task(void);
 
+//-------------------------------置为掉电模式------------------------------
+void ShortMngAry_ShutDown();//对应通道  
+
 //------------------------------对应通道是否接入------------------------------
 signed char ShortMngAry_IsShut(unsigned char Ch);
 

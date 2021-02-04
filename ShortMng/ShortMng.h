@@ -45,7 +45,10 @@ struct _ShortMng{
 
 //-------------------------------任务函数------------------------------
 //放入1S附近任务中扫描
-void ShortMng_Task(struct _ShortMng *pPow, unsigned char Ch); //对应通道
+void ShortMng_Task(struct _ShortMng *pPow, unsigned char Ch); 
+
+//-------------------------------置为掉电模式------------------------------
+void ShortMng_ShutDown(struct _ShortMng *pPow, unsigned char Ch);//对应通道
 
 //-----------------------------得到当前状态-----------------------------
 #define ShortMng_GetState(pow)  ((pow)->Flag & SHORT_MNG_STATE_MASK)

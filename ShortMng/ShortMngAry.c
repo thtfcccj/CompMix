@@ -24,6 +24,14 @@ void ShortMngAry_Init(unsigned char ShutDelay)
   }
 }
 
+//-------------------------------置为掉电模式------------------------------
+void ShortMngAry_ShutDown()//对应通道  
+{
+  for(unsigned char Ch = 0; Ch < SHORT_MNG_ARY_COUNT; Ch++){
+    ShortMng_ShutDown(&ShortMngAry.ShortMng[Ch], Ch);
+  }
+}
+
 //------------------------------任务函数------------------------------
 //放入128msS附近任务中扫描
 void ShortMngAry_Task(void) //对应通道
