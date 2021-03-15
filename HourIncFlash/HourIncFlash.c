@@ -133,10 +133,10 @@ void HourIncFlash_TickTask(void)
 }
 
 //----------------------------128Tick任务函数----------------------------
-//放入128Tick ,用于保存Flash
-void HourIncFlash_128TickTask(void)
+//放入128Tick ,用于保存Flash，返回0：小时未到，1：小时到了
+signed char HourIncFlash_128TickTask(void)
 {
-  if(HourIncFlash.ToHourTimer < HourIncFlash.Info.ToHourCount) return;
+  if(HourIncFlash.ToHourTimer < HourIncFlash.Info.ToHourCount) return 0;
   HourIncFlash.ToHourTimer = 0;
   //1小时到了，保存处理
   HourIncFlash.InPageHour++;
@@ -157,7 +157,7 @@ void HourIncFlash_128TickTask(void)
     //HourIncFlash.Flag = 0;
     //这里校验写入是否正确(略)
 
-    return;
+    return -1;
   }
   //=========================一页内继续写===========================
   unsigned char Buf[(HOUR_INC_FLASH_WR_BCELL + 7) / 8];
@@ -175,6 +175,7 @@ void HourIncFlash_128TickTask(void)
   Flash_Write((HOUR_INC_FLASH_PAGE_BASE + _HEADER_SIZE) +  
               WrPos, &Buf, sizeof(Buf));
   //这里校验写入是否正确(略)
+  return 1;
 }
 
 //---------------------------------小时校准----------------------------------
@@ -212,11 +213,14 @@ void HourIncFlash_ResetToHour0(void)
   //HourIncFlash.Flag = 0;
 }
 
-//-----------------------------得到累加小时数-----------------------------
-unsigned long HourIncFlash_GetAddHour(void)
+//-----------------------------得到累加小时数------------------------------
+//AbsHour为保存的绝对时间，为0时可获得此模块当前小时点
+//负值表示保存的绝对时间比当前小时点要早
+signed long HourIncFlash_GetAddHour(unsigned long AbsHour)
 {
-  return (unsigned long)_GetPageHourCount() * HourIncFlash.EreaseCount + 
-          HourIncFlash.InPageHour;
+  unsigned long CurAbsHour = HourIncFlash.InPageHour + 
+    (unsigned long)_GetPageHourCount() * HourIncFlash.EreaseCount;
+  return CurAbsHour - AbsHour;
 }
 
 //----------------------------------得到小时中的秒数--------------------------

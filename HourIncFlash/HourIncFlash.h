@@ -1,10 +1,12 @@
 /*****************************************************************************
 
 		                    在Flash页内实现的小时累加模块
+此模块主要用于没有RTC及掉电RAM或EEPROM时，系统还需要记录设备工作小时相关的信息,
+  使用时保存小时点(需以unsigned long 为单位)，减此值即为实际时间
 此模块使用一页Flash(即此模块专用)来保存自程序启用以来的工作小时数
 保存精度以1小时为单位，如59分59秒999毫秒关机时，也将认为是0小时
 可进行小时校正，将Tick任务放在中断中可提高精度，未对温度对时钟影响进行补偿
-此模块主要用于没有RTC及掉电RAM或EEPROM时，系统还需要记录设备工作小时相关的信息。
+
 此模块独立与硬件(通过Flash模块实现)与应用
 *****************************************************************************/
 #ifndef _HOUR_INC_FLASH_H
@@ -96,8 +98,8 @@ void HourIncFlash_Init(unsigned char IsInited);
 void HourIncFlash_TickTask(void);
 
 //----------------------------128Tick任务函数------------------------------
-//放入128Tick ,用于保存Flash
-void HourIncFlash_128TickTask(void);
+//放入128Tick ,用于保存Flash，返回0：小时未到，1：小时到了
+signed char HourIncFlash_128TickTask(void);
 
 //---------------------------------小时校准----------------------------------
 //自开机或上次校准到1小时时，调用此函数校准小时
@@ -111,13 +113,15 @@ void HourIncFlash_ResetToHour0(void);
 *******************************************************************************/
 
 //-----------------------------得到累加小时数------------------------------
-unsigned long  HourIncFlash_GetAddHour(void);
+//AbsHour为保存的绝对时间，为0时可获得此模块当前小时点
+//负值表示保存的绝对时间比当前小时点要早
+signed long HourIncFlash_GetAddHour(unsigned long AbsHour);
 
-//----------------------------得到累加天数---------------------------------
-#define HourIncFlash_GetDay()  (HourIncFlash_GetAddHour() / 24)
+//----------------------------得到累加小时中天数------------------------------
+#define HourIncFlash_GetDay(absHour)  (HourIncFlash_GetAddHour(absHour) / 24)
 
-//----------------------------得到天中的小时数-----------------------------
-#define HourIncFlash_GetHour()  (HourIncFlash_GetAddHour() % 24)
+//----------------------------得到累加小时中的小时数---------------------------
+#define HourIncFlash_GetHour(absHour)  (HourIncFlash_GetAddHour(absHour) % 24)
 
 //----------------------------------得到小时中的秒数--------------------------
 unsigned short HourIncFlash_GetSecInHour(void);
@@ -130,8 +134,5 @@ unsigned short HourIncFlash_GetSecInHour(void);
 
 //----------------------------------得到Tick计数----------------------------
 #define HourIncFlash_GetTick()   (HourIncFlash.TickTimer)
-
-
-
 
 #endif
