@@ -27,12 +27,12 @@
   #define HOUR_INC_FLASH_WR_BCELL    8  
 #endif
 
-//定义存存在Flash页中的起始位置，必须为4的倍数
+//定义存存在Flash页中的起始位置，4的倍数且BCELL对齐
 #ifndef HOUR_INC_FLASH_PAGE_BASE
   #define HOUR_INC_FLASH_PAGE_BASE    (0x8000-0x800)
 #endif
 
-//定义专用Flash页大小，必须为4的倍数
+//定义专用Flash页大小，必须为4的倍数且BCELL对齐
 #ifndef HOUR_INC_FLASH_PAGE_SIZE
   #define HOUR_INC_FLASH_PAGE_SIZE    512  
 #endif
@@ -42,7 +42,7 @@
   #define HOUR_INC_FLASH_TO_HOUR_DEFAULT   14062  //无误差时为14062    
 #endif
                             
-//读写一次Flash时缓冲大小，必须为4的倍数
+//读写一次Flash时缓冲大小，必须为4的倍数且BCELL对齐
 //值越大调用Flash读写次数越小但占用栈空间越多,开机时调用
 #ifndef HOUR_INC_FLASH_BUFFER_SIZE  
   #define HOUR_INC_FLASH_BUFFER_SIZE   (4 * 2)
@@ -51,6 +51,7 @@
 /***********************************************************************
 		                      相关结构
 ***********************************************************************/
+
 
 //信息结构
 struct _HourIncFlashInfo{
@@ -101,6 +102,9 @@ void HourIncFlash_128TickTask(void);
 //---------------------------------小时校准----------------------------------
 //自开机或上次校准到1小时时，调用此函数校准小时
 void HourIncFlash_HourCalibration(void);
+
+//---------------------------------模块恢复至0时间---------------------------
+void HourIncFlash_ResetToHour0(void);
 
 /*******************************************************************************
 		                      相关属性函数

@@ -20,13 +20,20 @@ static const struct _HourIncFlashInfo _InfoDefault = {
 		                      相关函数实现
 *******************************************************************************/
 
+//-----------------------------定义数据头大小---------------------------------
+#if HOUR_INC_FLASH_WR_BCELL < 64   //4字节对齐时，
+  #define _HEADER_SIZE     4
+#else
+  #define _HEADER_SIZE    (HeaderSize_t / 8)
+#endif 
+
 //-----------------------------得到一页内可存储的小时数-------------------------
 #if HOUR_INC_FLASH_WR_BCELL < 8 //字节内时
-  #define _GetPageHourCount() (((HOUR_INC_FLASH_PAGE_SIZE - \
-             sizeof(struct _HourIncFlashHeader))) * (8 / HOUR_INC_FLASH_WR_BCELL))
+  #define _GetPageHourCount() (((HOUR_INC_FLASH_PAGE_SIZE - _HEADER_SIZE)) * \
+                              (8 / HOUR_INC_FLASH_WR_BCELL))
 #else //字节为单位时
-  #define _GetPageHourCount() (((HOUR_INC_FLASH_PAGE_SIZE - \
-             sizeof(struct _HourIncFlashHeader))) / (HOUR_INC_FLASH_WR_BCELL / 8))
+  #define _GetPageHourCount() (((HOUR_INC_FLASH_PAGE_SIZE - _HEADER_SIZE)) / \
+                              (HOUR_INC_FLASH_WR_BCELL / 8))
 #endif
 
 //------------------------------得到缓冲区内小时数------------------------------
@@ -77,14 +84,7 @@ void HourIncFlash_Init(unsigned char IsInited)
   Flash_Read(HOUR_INC_FLASH_PAGE_BASE, &Header,  sizeof(struct _HourIncFlashHeader));
   //首次启用初始化
   if((!IsInited) || (Header.EreaseCountAnti == 0xffff)){
-    Flash_Unlock();
-    Flash_ErasePage(HOUR_INC_FLASH_PAGE_BASE); //先擦除
-    Header.EreaseCount = 0;
-    Header.EreaseCountAnti = 0xffff; 
-    Flash_Write(HOUR_INC_FLASH_PAGE_BASE,  
-                &Header,  
-                sizeof(struct _HourIncFlashHeader));
-    Flash_Lock(); 
+    HourIncFlash_ResetToHour0();
     return;
   }
   //读取后数据头错误及恢复
@@ -97,9 +97,9 @@ void HourIncFlash_Init(unsigned char IsInited)
   //=========================获取写位置===========================
   unsigned char Buf[HOUR_INC_FLASH_BUFFER_SIZE]; //使用栈缓冲
   unsigned short Pos = 0;
-  for(; Pos < (HOUR_INC_FLASH_PAGE_SIZE - sizeof(struct _HourIncFlashHeader)); 
+  for(; Pos < (HOUR_INC_FLASH_PAGE_SIZE - _HEADER_SIZE); 
         Pos += HOUR_INC_FLASH_BUFFER_SIZE){
-    Flash_Read((HOUR_INC_FLASH_PAGE_BASE + sizeof(struct _HourIncFlashHeader)) 
+    Flash_Read((HOUR_INC_FLASH_PAGE_BASE + _HEADER_SIZE) 
                  + Pos,Buf,HOUR_INC_FLASH_BUFFER_SIZE);
     signed char InPos = _GetHourFromBuf(Buf);
     if(InPos >= 0){//找完了
@@ -127,7 +127,7 @@ void HourIncFlash_TickTask(void)
 {
   HourIncFlash.TickTimer++;
   if(HourIncFlash.TickTimer) return;
-  //一个周期到了
+  //HourIncFlash.TickTimer计数到0， 一个周期到了
   HourIncFlash.ToHourTimer++;
   if(HourIncFlash.HourCalibrationOV) HourIncFlash.HourCalibrationOV--;
 }
@@ -146,6 +146,7 @@ void HourIncFlash_128TickTask(void)
     Flash_ErasePage(HOUR_INC_FLASH_PAGE_BASE); //先擦除
     Flash_Lock(); 
     HourIncFlash.EreaseCount++; //增加了
+    HourIncFlash.InPageHour = 0; //复原位置    
     //重写数据头
     struct _HourIncFlashHeader Header;
     Header.EreaseCount = HourIncFlash.EreaseCount;
@@ -153,8 +154,9 @@ void HourIncFlash_128TickTask(void)
     Flash_Write(HOUR_INC_FLASH_PAGE_BASE,  
                 &Header,  
                 sizeof(struct _HourIncFlashHeader)); 
+    //HourIncFlash.Flag = 0;
     //这里校验写入是否正确(略)
-    HourIncFlash.InPageHour = sizeof(struct _HourIncFlashHeader); //复原位置
+
     return;
   }
   //=========================一页内继续写===========================
@@ -170,7 +172,7 @@ void HourIncFlash_128TickTask(void)
     WrPos = (HourIncFlash.InPageHour - 1) * (HOUR_INC_FLASH_WR_BCELL / 8); 
     memcpy(Buf, 0, sizeof(Buf)); //暂先全部写为0
   #endif
-  Flash_Write((HOUR_INC_FLASH_PAGE_BASE + sizeof(struct _HourIncFlashHeader)) +  
+  Flash_Write((HOUR_INC_FLASH_PAGE_BASE + _HEADER_SIZE) +  
               WrPos, &Buf, sizeof(Buf));
   //这里校验写入是否正确(略)
 }
@@ -188,6 +190,26 @@ void HourIncFlash_HourCalibration(void)
            sizeof(struct _HourIncFlashInfo));
   HourIncFlash.HourCalibrationOV = 0xffff;//可重新执行校准
   HourIncFlash.ToHourTimer = ToHourTimer;//任务时执行加1小时
+}
+
+//---------------------------------模块恢复至0时间---------------------------
+void HourIncFlash_ResetToHour0(void)
+{
+  Flash_Unlock();
+  Flash_ErasePage(HOUR_INC_FLASH_PAGE_BASE); //先擦除
+  struct _HourIncFlashHeader Header;
+  Header.EreaseCount = 0;
+  Header.EreaseCountAnti = 0xffff; 
+  Flash_Write(HOUR_INC_FLASH_PAGE_BASE,      //再写入头
+              &Header,  
+              sizeof(struct _HourIncFlashHeader));
+  Flash_Lock(); 
+  //这里校验写入是否正确(略)
+
+  //最后初始化内部相关的影响
+  HourIncFlash.EreaseCount = 0;
+  HourIncFlash.InPageHour = 0;
+  //HourIncFlash.Flag = 0;
 }
 
 //-----------------------------得到累加小时数-----------------------------
