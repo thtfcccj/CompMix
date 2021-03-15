@@ -2,6 +2,8 @@
 
 		                    在Flash页内实现的小时累加模块
 此模块使用一页Flash(即此模块专用)来保存自程序启用以来的工作小时数
+保存精度以1小时为单位，如59分59秒999毫秒关机时，也将认为是0小时
+可进行小时校正，将Tick任务放在中断中可提高精度，未对温度对时钟影响进行补偿
 此模块主要用于没有RTC及掉电RAM或EEPROM时，系统还需要记录设备工作小时相关的信息。
 此模块独立与硬件(通过Flash模块实现)与应用
 *****************************************************************************/
@@ -18,20 +20,19 @@
 //#define SUPPORT_HOUR_INC_FLASH_RESTORE   //暂未实现此功能
 
 //(整片擦除后)写Flash时，允许的最小写入bit单位
-//针对Flash不同，有的允许
-//1Bit依次由1写0(如部分外置Flash)，有的允许2bit, 有的仅允许1Byte为单位
-//有的允许2Byte为单位,4Byte为单位
-//值应为：1，2，4，8(1Byte)，16(2Byte), 32(4Byte)  ->暂只支持字节为单位
+//针对Flash不同，有的允许Bit依次由1写0(如部分外置Flash)，有的允许1bit,2bit,4bit. 
+//有的允许2Byte为单位,4Byte为单位...可先设成1，再依次测试是否可写入以获是实际精度
+//此值必须为：2^n，即：1，2，4，8(1Byte)，16(2Byte), 32(4Byte) 64(8Byte)...
 #ifndef HOUR_INC_FLASH_WR_BCELL
-  #define HOUR_INC_FLASH_WR_BCELL    8  //默认字节为单位写放
+  #define HOUR_INC_FLASH_WR_BCELL    8  
 #endif
 
-//定义存存在Flash页中的起始位置
+//定义存存在Flash页中的起始位置，必须为4的倍数
 #ifndef HOUR_INC_FLASH_PAGE_BASE
   #define HOUR_INC_FLASH_PAGE_BASE    (0x8000-0x800)
 #endif
 
-//定义专用Flash页大小
+//定义专用Flash页大小，必须为4的倍数
 #ifndef HOUR_INC_FLASH_PAGE_SIZE
   #define HOUR_INC_FLASH_PAGE_SIZE    512  
 #endif
@@ -41,7 +42,7 @@
   #define HOUR_INC_FLASH_TO_HOUR_DEFAULT   14062  //无误差时为14062    
 #endif
                             
-//读写一次Flash时缓冲大小，4为单位
+//读写一次Flash时缓冲大小，必须为4的倍数
 //值越大调用Flash读写次数越小但占用栈空间越多,开机时调用
 #ifndef HOUR_INC_FLASH_BUFFER_SIZE  
   #define HOUR_INC_FLASH_BUFFER_SIZE   (4 * 2)
@@ -67,7 +68,7 @@ struct _HourIncFlash{
   struct _HourIncFlashInfo Info;
   //小时FLASH计数
   unsigned short EreaseCount; //擦除计数，一次为一轮回，即对应天数
-  unsigned short WrPos;       //Flash写位置(每个位置1小时,含头长度)
+  unsigned short InPageHour;  //一页内经过的小时数（注意字单位是否超限）
   
   //小时内RAM计数:
   unsigned short ToHourTimer; //到1小时时计数值
@@ -105,7 +106,7 @@ void HourIncFlash_HourCalibration(void);
 		                      相关属性函数
 *******************************************************************************/
 
-//-----------------------------得到累加小时数-----------------------------
+//-----------------------------得到累加小时数------------------------------
 unsigned long  HourIncFlash_GetAddHour(void);
 
 //----------------------------得到累加天数---------------------------------

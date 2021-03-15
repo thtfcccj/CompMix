@@ -20,21 +20,41 @@ static const struct _HourIncFlashInfo _InfoDefault = {
 		                      相关函数实现
 *******************************************************************************/
 
-//---------------------------得到缓冲区内小时数---------------------------
+//-----------------------------得到一页内可存储的小时数-------------------------
+#if HOUR_INC_FLASH_WR_BCELL < 8 //字节内时
+  #define _GetPageHourCount() (((HOUR_INC_FLASH_PAGE_SIZE - \
+             sizeof(struct _HourIncFlashHeader))) * (8 / HOUR_INC_FLASH_WR_BCELL))
+#else //字节为单位时
+  #define _GetPageHourCount() (((HOUR_INC_FLASH_PAGE_SIZE - \
+             sizeof(struct _HourIncFlashHeader))) / (HOUR_INC_FLASH_WR_BCELL / 8))
+#endif
+
+//------------------------------得到缓冲区内小时数------------------------------
 //0或正值找完了，负值未找完
 signed char _GetHourFromBuf(const unsigned char *pBuf){
-  unsigned char Hour = 0;
-  for(;Hour < HOUR_INC_FLASH_BUFFER_SIZE; Hour += (HOUR_INC_FLASH_WR_BCELL + 7) / 8){
-      unsigned char Data = *pBuf;
-      if(Data == 0xff) return Hour;//找完了   
-    #if HOUR_INC_FLASH_WR_BCELL <= 8 //字节内时
-      //(暂不支持)
+  unsigned char Pos = 0;
+  for(;Pos < HOUR_INC_FLASH_BUFFER_SIZE; Pos += (HOUR_INC_FLASH_WR_BCELL + 7) / 8){
+    unsigned char Data = *pBuf;   
+    #if HOUR_INC_FLASH_WR_BCELL < 8 //字节内时
+      if(Data == 0xff) //找完了
+        return Pos * (8 / HOUR_INC_FLASH_WR_BCELL);
+      else if(Data != 0){//写了一部分才完,字节内查找
+        unsigned char BitPos = 0;
+        for(; BitPos < 8; BitPos++){
+          if(Data & (1 << BitPos)) break;
+        }
+        return (BitPos / HOUR_INC_FLASH_WR_BCELL) + Pos * (8 / HOUR_INC_FLASH_WR_BCELL);
+      }
+      //else ==0时继续
+    #else
+      if(Data == 0xff) //找完了(这里只找了首个未被写0的)
+        return Pos / (HOUR_INC_FLASH_WR_BCELL / 8);
     #endif
   }
   return -1;
-};
+}
 
-//----------------------------初始化函数-------------------------------
+//---------------------------------初始化函数-----------------------------------
 void HourIncFlash_Init(unsigned char IsInited)
 {
   memset(&HourIncFlash, 0, sizeof(struct _HourIncFlash));
@@ -57,10 +77,10 @@ void HourIncFlash_Init(unsigned char IsInited)
   Flash_Read(HOUR_INC_FLASH_PAGE_BASE, &Header,  sizeof(struct _HourIncFlashHeader));
   //首次启用初始化
   if((!IsInited) || (Header.EreaseCountAnti == 0xffff)){
+    Flash_Unlock();
+    Flash_ErasePage(HOUR_INC_FLASH_PAGE_BASE); //先擦除
     Header.EreaseCount = 0;
     Header.EreaseCountAnti = 0xffff; 
-    Flash_Unlock();
-    if(!IsInited) Flash_ErasePage(HOUR_INC_FLASH_PAGE_BASE); //先擦除
     Flash_Write(HOUR_INC_FLASH_PAGE_BASE,  
                 &Header,  
                 sizeof(struct _HourIncFlashHeader));
@@ -76,18 +96,30 @@ void HourIncFlash_Init(unsigned char IsInited)
     
   //=========================获取写位置===========================
   unsigned char Buf[HOUR_INC_FLASH_BUFFER_SIZE]; //使用栈缓冲
-  unsigned short Pos = sizeof(struct _HourIncFlashHeader);
-  for(; Pos < (HOUR_INC_FLASH_PAGE_SIZE + HOUR_INC_FLASH_BUFFER_SIZE - 1); 
+  unsigned short Pos = 0;
+  for(; Pos < (HOUR_INC_FLASH_PAGE_SIZE - sizeof(struct _HourIncFlashHeader)); 
         Pos += HOUR_INC_FLASH_BUFFER_SIZE){
-    Flash_Read(HOUR_INC_FLASH_PAGE_BASE + Pos, Buf, HOUR_INC_FLASH_BUFFER_SIZE);
+    Flash_Read((HOUR_INC_FLASH_PAGE_BASE + sizeof(struct _HourIncFlashHeader)) 
+                 + Pos,Buf,HOUR_INC_FLASH_BUFFER_SIZE);
     signed char InPos = _GetHourFromBuf(Buf);
     if(InPos >= 0){//找完了
-      HourIncFlash.WrPos = Pos + InPos;
+      #if HOUR_INC_FLASH_WR_BCELL < 8 //字节内时
+        HourIncFlash.InPageHour = (Pos * (8 / HOUR_INC_FLASH_WR_BCELL)) + InPos;
+      #else
+        HourIncFlash.InPageHour = (Pos / (HOUR_INC_FLASH_WR_BCELL / 8)) + InPos;
+      #endif
       break;
     }
     //else 未找完继续
   }
 }
+
+//---------------------------已写0时的掩码-------------------------------
+#if HOUR_INC_FLASH_WR_BCELL < 8 //字节内时
+static const unsigned char _BitedPos0[] = {
+  0xff, 0xfe, 0xfc, 0xf8, 0xf0,0xe0, 0xc0, 0x80
+};
+#endif
 
 //---------------------------Tick任务函数-------------------------------
 //每Tick(>= 0.5ms)调用一次，建议放在时基中断里
@@ -107,9 +139,9 @@ void HourIncFlash_128TickTask(void)
   if(HourIncFlash.ToHourTimer < HourIncFlash.Info.ToHourCount) return;
   HourIncFlash.ToHourTimer = 0;
   //1小时到了，保存处理
-  HourIncFlash.WrPos += (HOUR_INC_FLASH_WR_BCELL + 7) / 8;//下一位置了
+  HourIncFlash.InPageHour++;
   //=========================一页写完了===========================
-  if(HourIncFlash.WrPos >= HOUR_INC_FLASH_PAGE_SIZE){
+  if(HourIncFlash.InPageHour >= _GetPageHourCount()){
     Flash_Unlock();
     Flash_ErasePage(HOUR_INC_FLASH_PAGE_BASE); //先擦除
     Flash_Lock(); 
@@ -121,19 +153,26 @@ void HourIncFlash_128TickTask(void)
     Flash_Write(HOUR_INC_FLASH_PAGE_BASE,  
                 &Header,  
                 sizeof(struct _HourIncFlashHeader)); 
-    HourIncFlash.WrPos = sizeof(struct _HourIncFlashHeader); //复原位置
+    //这里校验写入是否正确(略)
+    HourIncFlash.InPageHour = sizeof(struct _HourIncFlashHeader); //复原位置
     return;
   }
-  //=========================一页继续写===========================
+  //=========================一页内继续写===========================
   unsigned char Buf[(HOUR_INC_FLASH_WR_BCELL + 7) / 8];
+  unsigned short WrPos;
   #if HOUR_INC_FLASH_WR_BCELL < 8 //字节内时
-    Buf = 0;//暂不支持
+    WrPos = (HourIncFlash.InPageHour - 1) / (8 / HOUR_INC_FLASH_WR_BCELL);
+    unsigned char BitPos = (HourIncFlash.InPageHour % 
+      (8 / HOUR_INC_FLASH_WR_BCELL)) * HOUR_INC_FLASH_WR_BCELL;
+    if(BitPos == 0) Buf[0] = 0;//本字节满了
+    else Buf[0] = _BitedPos0[BitPos];//高位的满了
   #else
+    WrPos = (HourIncFlash.InPageHour - 1) * (HOUR_INC_FLASH_WR_BCELL / 8); 
     memcpy(Buf, 0, sizeof(Buf)); //暂先全部写为0
   #endif
-  Flash_Write(HOUR_INC_FLASH_PAGE_BASE + HourIncFlash.WrPos,  
-              &Buf,  
-              sizeof(Buf));
+  Flash_Write((HOUR_INC_FLASH_PAGE_BASE + sizeof(struct _HourIncFlashHeader)) +  
+              WrPos, &Buf, sizeof(Buf));
+  //这里校验写入是否正确(略)
 }
 
 //---------------------------------小时校准----------------------------------
@@ -151,16 +190,11 @@ void HourIncFlash_HourCalibration(void)
   HourIncFlash.ToHourTimer = ToHourTimer;//任务时执行加1小时
 }
 
-//-----------------------------得到一页内存储天数-----------------------------
-#define _GetPosHour() (((HOUR_INC_FLASH_PAGE_SIZE - \
-           sizeof(struct _HourIncFlashHeader)) * 8) / HOUR_INC_FLASH_WR_BCELL)
-
 //-----------------------------得到累加小时数-----------------------------
 unsigned long HourIncFlash_GetAddHour(void)
 {
-  //assert(HourIncFlash.WrPos >= sizeof(struct _HourIncFlashHeader));
-  return (unsigned long)_GetPosHour() * HourIncFlash.EreaseCount + 
-          (HourIncFlash.WrPos - sizeof(struct _HourIncFlashHeader));
+  return (unsigned long)_GetPageHourCount() * HourIncFlash.EreaseCount + 
+          HourIncFlash.InPageHour;
 }
 
 //----------------------------------得到小时中的秒数--------------------------
