@@ -1,11 +1,15 @@
 /*******************************************************************************
 
                             非线性校正模块
-此模块适用于源数据(x轴)单调上升的应用，目标数据(y轴)不限，但均应为正值
+此模块适用于源数据(x轴)单调上升的应用，不反表时，目标数据(y轴)不限，但均应为正值
 *******************************************************************************/
 
 #include "NolinearConvert.h"
 #include <string.h>
+
+#ifdef SUPPORT_NOLINEAR_CONVERT_BUF
+  struct _NolinearConvertBuf NolinearConvertBuf;
+#endif
 
 //定义查找表运算过程中的Q值,越大越精确，但应注意超限
 #define _NolinearConvert_Q   8
@@ -93,6 +97,8 @@ void NolinearConvert_AntiCopy(struct _NolinearConvertTbl *pDeLut,//目标,需>=源空
     pDeLut->Destination = pOrgLut->Source;
   }
 }
+
+
 
 
 

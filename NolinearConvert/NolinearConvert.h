@@ -1,7 +1,7 @@
 /*******************************************************************************
 
                             非线性校正模块
-此模块适用于源数据(x轴)单调上升的应用，目标数据(y轴)不限，但均应为正值
+此模块适用于源数据(x轴)单调上升的应用，不反表时，目标数据(y轴)不限，但均应为正值
 *******************************************************************************/
 #ifndef __NOLINEAR_CONVERT_H
 #define __NOLINEAR_CONVERT_H
@@ -9,6 +9,10 @@
 /****************************************************************************
                              相关配置
 ****************************************************************************/
+
+//是否支持(单例化的)查找表缓冲，可使用此缓冲反向
+//注：!!!!!!!!此缓冲无加解锁机制，系统需人为确保同一时刻只能有一个位置使用!!!!!
+//#define SUPPORT_NOLINEAR_CONVERT_BUF
 
 #if NOLINEAR_CONVERT_LEVEL == 1 //表为unsigned char型
   #define NolinearConvert_t unsigned char   //类型
@@ -38,6 +42,13 @@ struct _NolinearConvertTbl{
   NolinearConvert_t Destination;    //数据目标,即转换后的线性数据
 };
 
+#ifdef SUPPORT_NOLINEAR_CONVERT_BUF
+  struct _NolinearConvertBuf{
+    struct _NolinearConvertTbl Tbl[NOLINEAR_CONVERT_LUN_MAX + 1];//结尾
+  };
+  extern struct _NolinearConvertBuf NolinearConvertBuf;
+#endif
+
 /*******************************************************************************
                            相关函数
 *******************************************************************************/
@@ -59,6 +70,11 @@ void NolinearConvert_AntiCopy(struct _NolinearConvertTbl *pDeLut,//目标,需>=源空
                               const struct _NolinearConvertTbl *pOrgLut,//源
                               unsigned char LutSize);  //源查找表大小,0时自动                   
 
-
+//--------------------------------得到内建缓冲----------------------------------
+//可使用此缓冲反向,此缓冲无加解锁机制，系统需人为确保同一时刻只能有一个位置使用
+#ifdef SUPPORT_NOLINEAR_CONVERT_BUF
+  //struct _NolinearConvertTbl NolinearConvert_*NolinearConvert_pGetBuf(void)  
+  #define NolinearConvert_pGetBuf() (NolinearConvertBuf.Tbl)
+#endif
 
 #endif //#define __NOLINEAR_CONVERT_H
