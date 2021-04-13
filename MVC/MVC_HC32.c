@@ -1,6 +1,6 @@
 /******************************************************************************
 
-                     多通道电压比较器模块-在HC32中的实现
+                     多通道电压比较器模块-在HC32(默认M0P)中的实现
 
 *******************************************************************************/
 #include "MVC.h"
@@ -16,6 +16,14 @@ static const unsigned char _VcLut[VC_CHANNEL_GRP_COUNT][VC_CHANNEL_PER_COUNT] =
 //定义起始通道
 static const unsigned char _ChBaseLut[AD_CHANNEL_COUNT] = VC_CH_BASE_LUT;
 
+#ifndef PVC
+  #define PVC    M0P_VC  //别名
+#endif
+
+#ifndef MVC_cbCfgVCclk
+  #define MVC_cbCfgVCclk()   do{  M0P_SYSCTRL->PERI_CLKEN0_f.VC = 1;}while(0) 
+#endif
+
 /***************************************************************************
                              函数实现
 ****************************************************************************/
@@ -28,7 +36,7 @@ void MVC_Init(void)
   memset(MVC.CurCh,0xff,VC_CHANNEL_GRP_COUNT);
 
   //1. MVCC 、BGR模块时钟使能
-  M0P_SYSCTRL->PERI_CLKEN0_f.VC = 1;
+  MVC_cbCfgVCclk();
   
   //2. 配置IO与寄存器
   CfgVcIO();
@@ -49,9 +57,9 @@ void MVC_Task(void)
     else{//已有结果了
       //读取稳定后的结果
       unsigned char IsHi;
-      if(Vc == 0) IsHi = M0P_VC->IFR & (1 << 2);
-      else if(Vc == 1) IsHi = M0P_VC->IFR & (1 << 3);
-      else IsHi = M0P_VC->IFR & (1 << 5);
+      if(Vc == 0) IsHi = PVC->IFR & (1 << 2);
+      else if(Vc == 1) IsHi = PVC->IFR & (1 << 3);
+      else IsHi = PVC->IFR & (1 << 5);
       if(_VcLut[Vc][Ch] & 0x80) IsHi = !IsHi;//负端引入时反向
       
       //更新当前状态
@@ -82,9 +90,9 @@ void MVC_Task(void)
       Cr = ((unsigned long)(ChInfo & 0x7f) << 4) | GetVcCrCfgN(Vc);
     else //正端引入
       Cr = ChInfo | GetVcCrCfgP(Vc);
-    if(Vc == 0) M0P_VC->VC0_CR = Cr;
-    else if(Vc == 1) M0P_VC->VC1_CR = Cr;
-    else M0P_VC->VC2_CR = Cr; 
+    if(Vc == 0) PVC->VC0_CR = Cr;
+    else if(Vc == 1) PVC->VC1_CR = Cr;
+    else PVC->VC2_CR = Cr; 
     
   } //end for
 }

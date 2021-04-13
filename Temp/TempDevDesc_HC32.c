@@ -31,7 +31,8 @@ static void _InfoToDefault(struct _TempDev *pDev)
   pDev->Info.Gain = _DEFAULT_ADJ_GAIN;  
 }
 
-//Desc结构实现:(暂无.h，外部需extern实现)
+//---------------------------Desc结构实现------------------------------
+//(暂无.h，外部需extern实现)
 const struct _TempDevDesc TempDevDesc_HC32 = {
   12,  //增益使用的Q值
   0,   //曲线补偿表容量,这里不需要曲线补偿
