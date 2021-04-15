@@ -29,7 +29,7 @@ void Pot_cbPos2HwInit(const struct _Pot *pPot)
 
 //-------------------------开始电位器位置到硬件POT-----------------------------
 //即将当前位置打到数字电位器上，根据不同通讯由硬件实现
-//返回0:正常结束，负：未通讯上结束，正：通讯过程中(通讯完成需调Pot_Pos2HwEnd()告知)
+//返回是否启动成功 0成功,非0失败
 signed char Pot_cbPos2HwStart(const struct _Pot *pPot)
 {
   if(pPot->Id) _I2cData.SlvAdr = 45;//0b0101100 | 0b1;
@@ -37,10 +37,19 @@ signed char Pot_cbPos2HwStart(const struct _Pot *pPot)
   _Data[0] = pPot->CurPos; //给出位置
   //写硬件
   struct _I2cDev *pI2cDev = Pot_cbpGetI2c(pPot);
-  I2cDev_ReStart(pI2cDev, &_I2cData);
-  while(!I2cDev_IsEnd(pI2cDev));//阻塞等待
-  if(I2cDev_eGetSatate(pI2cDev)== eI2cDone) return 0;//正常通讯
+  return I2cDev_ReStart(pI2cDev, &_I2cData);
+}
+
+//-------------------------判断硬件是否通讯中----------------------------
+//返回0:正常结束，负：未通讯上结束，正：通讯过程中
+signed char Pot_cbIsHwCommDoing(const struct _Pot *pPot)
+{
+  struct _I2cDev *pI2cDev = Pot_cbpGetI2c(pPot);
+  if(!I2cDev_IsEnd(pI2cDev)) return 1;//阻塞等待
+  if(I2cDev_eGetSatate(pI2cDev)== eI2cDone) return 0;//正常通讯结束
   return -1;//异常结束 
 }
+
+
 
 

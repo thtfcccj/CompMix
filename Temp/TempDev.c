@@ -108,7 +108,7 @@ void TempDev_Update(struct _TempDev *pDev,
 #ifdef SUPPORT_TEMP_DEV_FILETER //支持滤波时
 void TempDev_UpdateLater(struct _TempDev *pDev)
 {
-  if(pDev->Flag & TEMP_DEV_UPDATE_LATER) return;//无任务
+  if(!(pDev->Flag & TEMP_DEV_UPDATE_LATER)) return;//无任务
   
   const struct _TempDevDesc *pDesc = TempDev_cbpGetDesc(pDev->Ch);
   unsigned char Capability = pDesc->LutAryCapability;

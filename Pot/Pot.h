@@ -11,7 +11,7 @@
 ********************************************************************************/
 
 //支持硬件实时延时检测时，全局定义,同时定义延时检测周期 Pot_Task()调用周期为单位
-#define SUPPORT_POT_DELAY_HW_CHECK      255            
+//#define SUPPORT_POT_DELAY_HW_CHECK      255            
 
 //数字电位器支持最高位数(最低位数固定为0)
 #ifndef POT_UP
@@ -37,33 +37,37 @@ struct _Pot{
   PotLen_t CurPos;   //当前调整的位置
   unsigned char Id; //分配的ID号(支持多个POT)
   unsigned char Flag;//相关标志，见定义
-  #ifdef SUPPORT_POT_DELAY_HW_CHECK   //支持硬件实时延时检测时
+  #ifdef SUPPORT_POT_DELAY_HW_CHECK   //支持硬件实时同步检测时
     unsigned short Delay;     //硬件检测延时时间
   #endif
 };
 
 //相关标志定义为:
-#define POT_HW_SYNC_FINAL    0x80   //位置同步完成
-#define POT_HW_COMM_WAITTING 0x40   //通讯等待中
-#define POT_HW_COMM_ERR_MASK 0x0f  //硬件通讯计数,此值表示硬件未通讯上
+#define POT_HW_COMM_COUNT_MASK 0x0f  //硬件通讯次数计数,具体值定义为:
+#define POT_HW_COMM_ERR_HW     0x0f  //硬件未通讯上
+#define POT_HW_COMM_SYNC_FINAL 0     //硬件同步上了
+
+#define POT_HW_COMM_BLOCK      0x10    //硬件通讯阻塞
+#define POT_EX_MASK            0xE0    //余下留给派生类等
 
 /***************************************************************************
                           对外接口部分
 ***************************************************************************/
 
 //-------------------------------初始化函数---------------------------------
-void Pot_Init(signed char IsInited,
-              struct _Pot *pPot, unsigned char Id);
+void Pot_Init(struct _Pot *pPot, 
+              unsigned char Id,  //分配的通道标识
+              signed char IsInited);//初始化标志
 
 //-----------------------------任务函数---------------------------------
 //<8ms调用一次
 void Pot_Task(struct _Pot *pPot);
 
 //---------------------------得到电位器当前位置-----------------------------
-#define Pot_GetPos(pot)  ((pot)->CurPos)
+#define Pot_GetCurPos(pot)  ((pot)->CurPos)
 
 //------------------------更新电位器位置---------------------------------
-void Pot_UpdatePos(struct _Pot *pPot, unsigned char NewPos);
+void Pot_UpdatePos(struct _Pot *pPot, PotLen_t NewPos);
 
 //---------------------------恢复电位器位置---------------------------------
 #define Pot_RestorePos(pot) do{\
@@ -73,9 +77,9 @@ void Pot_UpdatePos(struct _Pot *pPot, unsigned char NewPos);
 void Pot_SavePos(struct _Pot *pPot);
 
 //------------------------结束电位器位置到硬件POT-----------------------------
-//POT通讯完成后调用
+//POT通讯完成后可主动调用
 void Pot_Pos2HwEnd(struct _Pot *pPot, 
-                   signed char Resume);//负错误，否则正确
+                   signed char Resume);//0:正常结束，负：未通讯上结束
 
 /***************************************************************************
                           回调函数
@@ -85,12 +89,17 @@ void Pot_Pos2HwEnd(struct _Pot *pPot,
 //未初始化时调用
 PotLen_t Pot_cbGetDefaultPos(const struct _Pot *pPot);
 
-//-------------------------硬件初始化调用-----------------------------
+//-----------------------------硬件初始化调用-----------------------------
 void Pot_cbPos2HwInit(const struct _Pot *pPot);
 
-//-------------------------开始电位器位置到硬件POT-----------------------------
+//-------------------------开始电位器位置到硬件POT------------------------
 //即将当前位置打到数字电位器上，根据不同通讯由硬件实现
-//返回0:正常结束，负：未通讯上结束，正：通讯过程中(通讯完成需调Pot_Pos2HwEnd()告知)
+//返回是否启动成功 0成功,非0失败
 signed char Pot_cbPos2HwStart(const struct _Pot *pPot);
+
+//-------------------------判断硬件是否通讯中----------------------------
+//返回0:正常结束，负：未通讯上结束，正：通讯过程中
+signed char Pot_cbIsHwCommDoing(const struct _Pot *pPot);
+
 
 #endif
