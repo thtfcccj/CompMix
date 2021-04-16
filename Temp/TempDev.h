@@ -19,8 +19,11 @@
 //#define SUPPORT_TEMP_DEV_FILETER_AVERVGE   //支持简单平均时
 //#define SUPPORT_TEMP_DEV_FILETER_AVERVGE_MID  //支持平均但去除最大最小值时
 
+//支持字节温度时同时定义起始温度，精度为℃，起点为此值,范围：(-此值) ~ (255-此值)
+//#define TEMP_DEV_BYTE_BASE           70
+
 //温度零点固定为2740度，用0度方便无小数温度计算
-#define TEMP_DEV_BASE           2740  
+#define TEMP_DEV_BASE           2740
 
 //0为无效值
 #define TEMP_DEV_TEMP_INVALID   0       
@@ -111,6 +114,13 @@ void TempDev_Update(struct _TempDev *pDev,
 //需标校两次,以最后两次调用此函数的结果为准
 void TempDev_Calibration(struct _TempDev *pDev,
                          unsigned short Temp); //目标浓度值
+
+//--------------------------支持字节温度表示时互转------------------------------
+//可用于存储时节省空间
+#ifdef TEMP_DEV_BYTE_BASE
+  unsigned char TempDev_ToByte(unsigned short Temp);
+  unsigned short TempDev_FromByte(unsigned char ByteTemp);
+#endif
 
 /*******************************************************************************
                            相关属性函数

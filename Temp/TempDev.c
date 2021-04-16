@@ -257,5 +257,25 @@ void TempDev_Calibration(struct _TempDev *pDev,
               sizeof(struct _TempDevInfo));
 }
 
+//--------------------------支持字节温度表示时互转------------------------------
+//可用于存储时节省空间
+#ifdef TEMP_DEV_BYTE_BASE
+unsigned char TempDev_ToByte(unsigned short Temp)
+{
+  if(Temp <= (TEMP_DEV_BASE - (TEMP_DEV_BYTE_BASE * 10))) return 0;//负超限
+  Temp -= (TEMP_DEV_BASE - (TEMP_DEV_BYTE_BASE * 10)); 
+  if(Temp > 2550) return 255; //正范围超限
+  return Temp / 10; //去小数点    
+}
+unsigned short TempDev_FromByte(unsigned char ByteTemp)
+{
+  //一定在范围
+  return ((unsigned short)ByteTemp * 10) + 
+    (TEMP_DEV_BASE - (TEMP_DEV_BYTE_BASE * 10));
+}
+#endif
+
+
+
 
 

@@ -31,7 +31,7 @@
 
 //定义存存在Flash页中的起始位置，4的倍数且BCELL对齐
 #ifndef HOUR_INC_FLASH_PAGE_BASE
-  #define HOUR_INC_FLASH_PAGE_BASE    (0x8000-0x800)
+  #define HOUR_INC_FLASH_PAGE_BASE    (0x8000-0x600)
 #endif
 
 //定义专用Flash页大小，必须为4的倍数且BCELL对齐
