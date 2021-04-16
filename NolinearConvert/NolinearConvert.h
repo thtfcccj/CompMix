@@ -29,8 +29,8 @@
   #define NolinearConvert_long_t unsigned long  //内部乘法运算时的单位
 #endif
 
-#ifndef NOLINEAR_CONVERT_LUN_MAX   //查找表最大表项
-  #define NOLINEAR_CONVERT_LUN_MAX  32
+#ifndef NOLINEAR_CONVERT_LUT_MAX   //查找表最大表项
+  #define NOLINEAR_CONVERT_LUT_MAX  32
 #endif
 
 /****************************************************************************
@@ -44,7 +44,7 @@ struct _NolinearConvertTbl{
 
 #ifdef SUPPORT_NOLINEAR_CONVERT_BUF
   struct _NolinearConvertBuf{
-    struct _NolinearConvertTbl Tbl[NOLINEAR_CONVERT_LUN_MAX + 1];//结尾
+    struct _NolinearConvertTbl Tbl[NOLINEAR_CONVERT_LUT_MAX + 1];//结尾
   };
   extern struct _NolinearConvertBuf NolinearConvertBuf;
 #endif

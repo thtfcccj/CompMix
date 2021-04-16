@@ -78,7 +78,7 @@ NolinearConvert_t NolinearConvert(NolinearConvert_t Source, //数据源
 unsigned char NolinearConvert_GetSize(const struct _NolinearConvertTbl *pLut)
 {
   unsigned char LutSize = 0;
-  for(; LutSize < NOLINEAR_CONVERT_LUN_MAX; LutSize++){
+  for(; LutSize < NOLINEAR_CONVERT_LUT_MAX; LutSize++){
       if((pLut + LutSize)->Source == NOLINEAR_CONVERT_NULL)//结束了
         break;
   }
@@ -92,9 +92,13 @@ void NolinearConvert_AntiCopy(struct _NolinearConvertTbl *pDeLut,//目标,需>=源空
                               unsigned char LutSize)  //源查找表大小,0时自动  
 {
   if(!LutSize) LutSize = NolinearConvert_GetSize(pOrgLut);//自动查找结束点
-  for(unsigned char i = 0; i < LutSize; i++){
+  for(unsigned char i = 0; i < LutSize; i++, pDeLut++, pOrgLut++){
     pDeLut->Source = pOrgLut->Destination;
     pDeLut->Destination = pOrgLut->Source;
+  }
+  //强制插入结束点
+  if(LutSize < NOLINEAR_CONVERT_LUT_MAX){
+    pDeLut->Source = NOLINEAR_CONVERT_NULL; 
   }
 }
 
