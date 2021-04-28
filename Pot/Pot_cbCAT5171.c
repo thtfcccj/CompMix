@@ -7,6 +7,19 @@
 #include "Pot_cbCAT5171.h"
 #include <string.h>
 
+#ifdef SUPPORT_I2C_DEV_IO    //独立IO实现时转义至I2cDevIO
+  #include "I2cDevIO.h"      //标准I2C主要实现
+  //各函数转义:
+  #define I2cDevPot_ReStart     I2cDevIO_ReStart
+  #define I2cDevPot_IsEnd       I2cDevIO_IsEnd
+  #define I2cDevPot_eGetSatate  I2cDevIO_eGetSatate
+#else //标准I2C实现:
+  //各函数转义:
+  #define I2cDevPot_ReStart     I2cDev_ReStart
+  #define I2cDevPot_IsEnd       I2cDev_IsEnd
+  #define I2cDevPot_eGetSatate  I2cDev_eGetSatate
+#endif
+
 //直接单例化
 static struct _I2cData _I2cData;
 static unsigned char _Cmd[1];//1个字指令节: 7b:置位时表示中间，6b:1时断开模式，0正常
@@ -37,7 +50,7 @@ signed char Pot_cbPos2HwStart(const struct _Pot *pPot)
   _Data[0] = pPot->CurPos; //给出位置
   //写硬件
   struct _I2cDev *pI2cDev = Pot_cbpGetI2c(pPot);
-  return I2cDev_ReStart(pI2cDev, &_I2cData);
+  return I2cDevPot_ReStart(pI2cDev, &_I2cData);
 }
 
 //-------------------------判断硬件是否通讯中----------------------------
@@ -45,8 +58,8 @@ signed char Pot_cbPos2HwStart(const struct _Pot *pPot)
 signed char Pot_cbIsHwCommDoing(const struct _Pot *pPot)
 {
   struct _I2cDev *pI2cDev = Pot_cbpGetI2c(pPot);
-  if(!I2cDev_IsEnd(pI2cDev)) return 1;//阻塞等待
-  if(I2cDev_eGetSatate(pI2cDev)== eI2cDone) return 0;//正常通讯结束
+  if(!I2cDevPot_IsEnd(pI2cDev)) return 1;//阻塞等待
+  if(I2cDevPot_eGetSatate(pI2cDev)== eI2cDone) return 0;//正常通讯结束
   return -1;//异常结束 
 }
 
