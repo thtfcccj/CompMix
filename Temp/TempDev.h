@@ -83,7 +83,6 @@ struct _TempDev{
 };
 
 //相关标志定义为：
-#define TEMP_DEV_ADJ_MODE        0x80  //温度增益标校模式,否则为零点标定模式
 #define TEMP_DEV_ADJ_1ST_FINAL   0x20  //增益标校模式时，温度零点记录完成
 #define TEMP_DEV_UPDATE_LATER    0x10  //更新延后标志
 
@@ -110,10 +109,10 @@ void TempDev_Update(struct _TempDev *pDev,
 #endif
 
 //----------------------------温度校准处理--------------------------------------
-//形参为当前时刻的目标温度值
-//需标校两次,以最后两次调用此函数的结果为准
-void TempDev_Calibration(struct _TempDev *pDev,
-                         unsigned short Temp); //目标浓度值
+//0标定成功，否则失败!
+signed char TempDev_Calibration(struct _TempDev *pDev,
+                                unsigned short TargetTemp, //目标浓度值
+                                unsigned char IsGain);//标增益(需提前标零点)，否则标零点
 
 //--------------------------支持字节温度表示时互转------------------------------
 //可用于存储时节省空间
@@ -128,21 +127,12 @@ void TempDev_Calibration(struct _TempDev *pDev,
 //------------------------------------得到当前温度------------------------------
 #define TempDev_GetTemp(dev) ((dev)->CurTemp)
 
-//------------------------------标校模式相关------------------------------------
-//是否标识在两点标定模式
-#define TempDev_IsAdj2Mode(dev) ((dev)->Flag &  TEMP_DEV_ADJ_MODE) 
-//是否标识在1点标定模式
-#define TempDev_IsAdj1Mode(dev) (!((dev)->Flag & TEMP_DEV_ADJ_MODE))
-//切换到1点标定模式
-#define TempDev_SetAdj1Mode(dev) do{(dev)->Flag &= ~TEMP_DEV_ADJ_MODE;}while(0)
-
-//切换到两点标定模式
-#define TempDev_SetAdj2Mode(dev) do{(dev)->Flag |= TEMP_DEV_ADJ_MODE;}while(0)
-//两点标定模式时，清除上次点
-#define TempDev_ClrAdj2PrvPoint(dev) do{(dev)->Flag &= ~TEMP_DEV_ADJ_1ST_FINAL;}while(0)
-//切换到两点标定模式同时清除上次点
-#define TempDev_SetAdj2Mode_ClrPrv(dev) do{TempDev_SetAdj2Mode(dev); \
-  TempDev_ClrAdj2PrvPoint(dev);}while(0)
+//--------------------------两点标定时，上次点相关------------------------------
+//清除上次点
+#define TempDev_ClrPrvPoint(dev) \
+  do{(dev)->Flag &= ~TEMP_DEV_ADJ_1ST_FINAL;}while(0)
+//是否上次有点
+#define TempDev_IsPrvPoint(dev) ((dev)->Flag & TEMP_DEV_ADJ_1ST_FINAL)
 
 /*******************************************************************************
                            回调函数

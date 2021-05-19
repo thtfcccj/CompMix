@@ -207,36 +207,33 @@ static unsigned short  _GetOrgSignal(struct _TempDev *pDev,
 }
 
 //----------------------------温度校准处理--------------------------------------
-void TempDev_Calibration(struct _TempDev *pDev,
-                         unsigned short TargetTemp) //目标浓度值
+//0标定成功，否则失败!
+signed char TempDev_Calibration(struct _TempDev *pDev,
+                                unsigned short TargetTemp, //目标浓度值
+                                unsigned char IsGain)//标增益(需提前标零点)，否则标零点
 {
+  //两点标定时，只有一点
+  if(IsGain && !(pDev->Flag &TEMP_DEV_ADJ_1ST_FINAL)) return -1; 
   unsigned short OrgTemp = _GetOrgTemp(pDev, TargetTemp);//当前真实温度对应原温度
   unsigned short CurSignal = _GetOrgSignal(pDev, ///当前真实温度对应采样信号
                                            _GetOrgTemp(pDev, pDev->CurTemp));
   const struct _TempDevDesc *pDesc = TempDev_cbpGetDesc(pDev->Ch);
-  //增益标定模式时，需两个点
-  if(pDev->Flag &TEMP_DEV_ADJ_MODE){
-    if(!(pDev->Flag &TEMP_DEV_ADJ_1ST_FINAL)){//两点记录只有一点
-      pDev->PrvAdjTemp = OrgTemp;
-      pDev->PrvAdjSignal = CurSignal;
-      pDev->Flag |= TEMP_DEV_ADJ_1ST_FINAL;
-      return;
-    }
-    //两点有了，计算增益值;
+
+  if(IsGain){ //增益标定模式时，两个点计算增益值
     unsigned short TempDiff;
     unsigned short PrvAdjSignal = pDev->PrvAdjSignal;
     if(pDev->PrvAdjTemp > OrgTemp){//先高温后低温
       TempDiff = pDev->PrvAdjTemp - OrgTemp;
-      if(PrvAdjSignal < CurSignal) return; //用户设置数据有误
+      if(PrvAdjSignal < CurSignal) return -2; //用户设置数据有误
       PrvAdjSignal = PrvAdjSignal - CurSignal;
     }
     else{//先低温后高温
       TempDiff =  OrgTemp - pDev->PrvAdjTemp;
-      if(CurSignal < PrvAdjSignal) return; //用户设置数据有误
+      if(CurSignal < PrvAdjSignal) return -3; //用户设置数据有误
       PrvAdjSignal = CurSignal - PrvAdjSignal;
     }
-    if(TempDiff < pDesc->CalibrationTempDiffMin)  return; //温差太小,不能标校
-    if(PrvAdjSignal < pDesc->CalibrationOrgSignalDiffMin) return; //原始信号相差太小,不能标校
+    if(TempDiff < pDesc->CalibrationTempDiffMin)  return - 4; //温差太小,不能标校
+    if(PrvAdjSignal < pDesc->CalibrationOrgSignalDiffMin) return -5; //原始信号相差太小,不能标校
     //得到增益  
     unsigned long Data = (unsigned long)TempDiff << pDesc->GainQ;
     Data /= PrvAdjSignal;
@@ -251,10 +248,12 @@ void TempDev_Calibration(struct _TempDev *pDev,
   //替换上次为当前以便下次使用
   pDev->PrvAdjTemp = OrgTemp;
   pDev->PrvAdjSignal = CurSignal;
+  pDev->Flag |= TEMP_DEV_ADJ_1ST_FINAL; //只要成功，就有一个点了  
   //最后保存
   Eeprom_Wr(TempDev_GetInfoBase(pDev->Ch),
               &pDev->Info,
               sizeof(struct _TempDevInfo));
+  return 0;
 }
 
 //--------------------------支持字节温度表示时互转------------------------------
