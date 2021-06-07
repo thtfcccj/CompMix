@@ -11,9 +11,11 @@
 *******************************************************************************/
 #include "CustomLut.h"
 
+//-------------------------------序列化数据长度--------------------------------
+#define CUSTON_LUT_SERIALIZE_LEN   (4 * CUSTOM_LUT_LUT_SIZE)
+
 //-------------------------------序列化函数--------------------------------
-//将本地 pCustomLut->Info.Tbl[]序列化至缓冲区返回结束位置
-unsigned char *CustomLut_pSerialize(const struct _CustomLut *pCustomLut,
+void CustomLut_Serialize(const struct _CustomLut *pCustomLut,
                                      unsigned char *pData);//序列接收缓冲区
 
 //-----------------------------反序列化函数--------------------------------

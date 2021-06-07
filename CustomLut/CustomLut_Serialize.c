@@ -8,7 +8,7 @@
 
 //-------------------------------序列化函数--------------------------------
 //将本地 pCustomLut->Info.Tbl[]序列化至缓冲区返回结束位置
-unsigned char *CustomLut_pSerialize(const struct _CustomLut *pCustomLut,
+void CustomLut_Serialize(const struct _CustomLut *pCustomLut,
                                      unsigned char *pData)//序列接收缓冲区
 {
   const struct _NolinearConvertTbl *pTbl = pCustomLut->Info.Tbl;
@@ -19,7 +19,6 @@ unsigned char *CustomLut_pSerialize(const struct _CustomLut *pCustomLut,
     *pData++ = pTbl->Destination & 0xff;
     pTbl++;
   }
-  return pData;
 }
 
 //-----------------------------反序列化函数--------------------------------
