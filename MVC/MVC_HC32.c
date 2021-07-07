@@ -14,7 +14,7 @@ static const unsigned char _VcLut[VC_CHANNEL_GRP_COUNT][VC_CHANNEL_PER_COUNT] =
   VC_CHANNEL_LUT;
 
 //定义起始通道
-static const unsigned char _ChBaseLut[AD_CHANNEL_COUNT] = VC_CH_BASE_LUT;
+static const unsigned char _ChBaseLut[VC_CHANNEL_GRP_COUNT] = VC_CH_BASE_LUT;
 
 #ifndef PVC
   #define PVC    M0P_VC  //别名
