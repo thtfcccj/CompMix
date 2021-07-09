@@ -102,7 +102,7 @@ void HourIncFlash_TickTask(void);
 signed char HourIncFlash_128TickTask(void);
 
 //---------------------------------小时校准----------------------------------
-//自开机或上次校准到1小时时，调用此函数校准小时
+//自开机或上次校准到1小时，调用此函数校准小时
 void HourIncFlash_HourCalibration(void);
 
 //---------------------------------模块恢复至0时间---------------------------
