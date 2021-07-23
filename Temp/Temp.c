@@ -44,10 +44,21 @@ void Temp_Update(void) //原始信号(为负时需上浮固定值为正)
     unsigned long Data = OrgSignal - Temp.Info.Zero;
     //->X增益
     Data *= Temp.Info.Gain;
-    CurTemp = Data >> TEMP_GAIN_Q;
-    CurTemp = Temp_cbAppendPro(CurTemp); //附加校正
+    Data >>= TEMP_GAIN_Q;
+    if(Data > 255){//正超限时
+      CurTemp = 255;
+      Temp.Flag |= TEMP_HI_OV_ERR;
+    }
+    else{
+      CurTemp = Data;
+      Temp.Flag &= ~(TEMP_HI_OV_ERR | TEMP_LOW_OV_ERR);
+      CurTemp = Temp_cbAppendPro(CurTemp); //附加校正
+    }
   }
-  else CurTemp = TEMP_TEMP_INVALID;//异常，为无意义值
+  else{//负超限了
+    CurTemp = 0;
+    Temp.Flag |= TEMP_LOW_OV_ERR;
+  }
   //==========================滤波预处理==============================
   #ifdef SUPPORT_TEMP_FILETER //支持滤波时
     unsigned char *pFilterBuf = Temp.FilterBuf;
@@ -143,14 +154,14 @@ static unsigned char  _GetOrgSignal(unsigned char OrgTemp) //原始温度
 
 //----------------------------温度校准处理--------------------------------------
 //0标定成功，否则失败!
-signed char Temp_Calibration(unsigned short TargetTemp, //目标浓度值
+signed char Temp_Calibration(unsigned char TargetTemp, //目标浓度值
                               unsigned char IsGain)//标增益(需提前标零点)，否则标零点
 {
   //两点标定时，只有一点
   if(IsGain && !(Temp.Flag &TEMP_ADJ_1ST_FINAL)) return -1; 
-  unsigned short OrgTemp = Temp_cbAntiAppendPro(TargetTemp);//当前真实温度对应原温度
+  unsigned char OrgTemp = Temp_cbAntiAppendPro(TargetTemp);//当前真实温度对应原温度
   unsigned short CurSignal;
-  if(Temp.CurTemp != TEMP_TEMP_INVALID)//以稳定的温度反AD为准
+  if(Temp.Flag & (TEMP_LOW_OV_ERR | TEMP_HI_OV_ERR))//以稳定的温度反AD为准
     CurSignal = _GetOrgSignal(Temp_cbAntiAppendPro(Temp.CurTemp));
   else CurSignal = Temp_cbGetCurTempSignal();//以当前AD为准(AD不稳时，可能要标两次)
 
