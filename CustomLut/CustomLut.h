@@ -19,7 +19,6 @@
 /*******************************************************************************
                                  相关结构
 *******************************************************************************/
-#include "Eeprom.h"
 #include "NolinearConvert.h"
 //信息结构
 struct _CustomLutInfo{
@@ -76,8 +75,11 @@ void CustomLut_Restore(struct _CustomLut *pCustomLut);
                         回调函数
 ********************************************************************************/
 
-//----------------------------得以信息结构基址----------------------------------
-EepromAdr_t CustomLut_cbGetInfoBase(unsigned char CustomLutId);
+//----------------------------保存结构----------------------------------
+void CustomLut_cbPushSave(const struct _CustomLut *pCustomLut);
+
+//--------------------------获得保存结构----------------------------------
+void CustomLut_cbPosSave(struct _CustomLut *pCustomLut);
 
 //----------------------------填充默认查找表结构函数----------------------------
 //应根据应用情况决定,查找表大小为CUSTOM_LUT_LUT_SIZE

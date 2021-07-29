@@ -39,9 +39,7 @@ void CustomLut_Init(struct _CustomLut *pCustomLut,
     CustomLut_Restore(pCustomLut);
   }
   else{
-    Eeprom_Rd(CustomLut_cbGetInfoBase(CustomLutId),
-              &pCustomLut->Info,
-              sizeof(struct _CustomLutInfo));
+    CustomLut_cbPosSave(pCustomLut);
     if(CustomLut_Check(pCustomLut)) 
       CustomLut_Restore(pCustomLut);//检查查找表错误时,恢复默认设置
   }
@@ -87,9 +85,7 @@ signed char CustomLut_ReplaceItem(struct _CustomLut *pCustomLut,
   NolinearConvert_t PrvDestination = pCustomLut->Info.Tbl[Pos].Destination;
   pCustomLut->Info.Tbl[Pos].Destination = Destination;
   if(!CustomLut_Check(pCustomLut)){//覆盖成功,保存数据
-    Eeprom_Wr(CustomLut_cbGetInfoBase(pCustomLut->CustomLutId),
-              &pCustomLut->Info,
-              sizeof(struct _CustomLutInfo)); 
+     CustomLut_cbPushSave(pCustomLut);
      return 0;
   }   
   
@@ -141,9 +137,7 @@ signed char CustomLut_AddItem(struct _CustomLut *pCustomLut,
     Size++;//扩容了
     if(Size < CUSTOM_LUT_LUT_SIZE)//未满时，写结束字符
        pCustomLut->Info.Tbl[Size].Source = NOLINEAR_CONVERT_NULL;
-    Eeprom_Wr(CustomLut_cbGetInfoBase(pCustomLut->CustomLutId),
-              &pCustomLut->Info,
-              sizeof(struct _CustomLutInfo)); 
+    CustomLut_cbPushSave(pCustomLut);
 
   return 0;//插入成功            
 }  
@@ -166,9 +160,7 @@ signed char CustomLut_DelItem(struct _CustomLut *pCustomLut,
   pCustomLut->Info.Tbl[Item].Source = NOLINEAR_CONVERT_NULL;
 
   //保存数据
-  Eeprom_Wr(CustomLut_cbGetInfoBase(pCustomLut->CustomLutId),
-            &pCustomLut->Info,
-            sizeof(struct _CustomLutInfo));
+  CustomLut_cbPushSave(pCustomLut);
              
   return 0;//删除成功 
 }
@@ -178,8 +170,6 @@ signed char CustomLut_DelItem(struct _CustomLut *pCustomLut,
 void CustomLut_Restore(struct _CustomLut *pCustomLut)
 {
   CustomLut_cbFullDefaultLut(pCustomLut->Info.Tbl);
-  Eeprom_Wr(CustomLut_cbGetInfoBase(pCustomLut->CustomLutId),
-            &pCustomLut->Info,
-            sizeof(struct _CustomLutInfo));
+  CustomLut_cbPushSave(pCustomLut);
 }
 
