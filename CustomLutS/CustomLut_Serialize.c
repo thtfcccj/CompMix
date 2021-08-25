@@ -5,6 +5,8 @@
 *******************************************************************************/
 
 #include "CustomLut_Serialize.h"
+#include "InfoBase.h"
+#include "Eeprom.h"
 
 //-------------------------------序列化函数--------------------------------
 //将本地 pCustomLut->Info.Tbl[]序列化至缓冲区返回结束位置
@@ -32,6 +34,10 @@ void CustomLut_Deserialize(const unsigned char *pData)
     pData += 2;
     pTbl++;
   }
+  //保存数据
+  Eeprom_Wr(CustomLut_GetInfoBase(),
+            &CustomLut,
+            sizeof(CustomLut));
 }
 
 
