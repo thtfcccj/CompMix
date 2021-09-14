@@ -5,7 +5,9 @@
 ************************************************************/
 #ifndef  _DELAY_H
 #define  _DELAY_H  
-
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 
 //--------------------Us延时函数----------------------------
 void Delay_Us(unsigned short DelayUs);

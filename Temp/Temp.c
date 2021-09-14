@@ -4,9 +4,10 @@
 此实现独立于硬件
 *******************************************************************************/
 #include "Temp.h"
+#include <string.h>
+
 #include "Eeprom.h"
 #include "InfoBase.h"
-#include <string.h>
 
 struct _Temp Temp;
 

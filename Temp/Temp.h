@@ -5,10 +5,16 @@
 *******************************************************************************/
 #ifndef __TEMP_H
 #define __TEMP_H
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 
 /*****************************************************************************
                              相关配置
 *****************************************************************************/
+
+//定义是否支持温补曲线
+//#define SUPPORT_TEMP_LUT     
 
 //处理流程为：原始信号->减零点->X增益->(可选)曲线校正->(可选)附加校正
 //支持单点校准(校零点)与两点校准(校零点与增益)
@@ -22,6 +28,8 @@
 //---------------------------硬件支持-------------------------------------
 #if defined(SUPPORT_HC32)
  #include "Temp_HC32.h"
+#elif defined(SUPPORT_NTC10K_3380K)
+ #include "Temp_NTC10K_3380K.h"
 #endif
 
 //-------------------------------------Info结构---------------------------------
@@ -107,11 +115,19 @@ unsigned short Temp_cbGetCurTempSignal(void);
 
 //------------------------------------温度校正--------------------------------
 //如：线性度校正，其它附加处理等
-#define Temp_cbAppendPro(temp) (temp)  //暂不支持
-    
+#ifdef SUPPORT_TEMP_LUT
+  unsigned char Temp_cbAppendPro(unsigned char OrgTemp);
+#else//不支持时
+  #define Temp_cbAppendPro(temp) (temp)  
+#endif
+
 //----------------------------------温度反校正---------------------------------
 //与Temp_cbAppendPro()成对使用
-#define Temp_cbAntiAppendPro(temp) (temp)  //暂不支持
+#ifdef SUPPORT_TEMP_LUT
+  unsigned char Temp_cbAppendPro(unsigned char CurTemp);
+#else//不支持时
+  #define Temp_cbAntiAppendPro(temp) (temp)
+#endif
 
 #endif
 
