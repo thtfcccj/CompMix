@@ -42,6 +42,10 @@ void CustomLut_Init(signed char Inited);
 //-----------------------得到查找表大小函数--------------------------------
 unsigned char CustomLut_GetSize(void);
 
+//-----------------------由数据源查找对应项函数------------------------------
+//在误差范围内时，认为找到了，返回位置，负未找到
+signed char CustomLut_FindItem(NolinearConvert_t Source); //源数据
+
 //-----------------------尝试覆盖一个查找表项函数-------------------------
 //返回是否覆盖成功(0成功,其它不成功)
 signed char CustomLut_ReplaceItem(NolinearConvert_t Source,//源数据
@@ -58,7 +62,7 @@ void CustomLut_InsertItem(NolinearConvert_t Source,//源数据
 
 //-----------------------删除一个查找表项函数------------------------------
 //返回是否成功
-signed char CustomLut_DelItem(unsigned char Item);//项位置
+signed char CustomLut_DelItem(unsigned char Item);//项位置,最高位为0x80时强制删除
 
 //-----------------------查找表置默认值函数---------------------------------
 //将查找表置出厂前状态
@@ -76,5 +80,10 @@ void CustomLut_cbFullDefaultLut(void);
 //此函数用于插入数据时,判断插入的数据是否重复,若重复，将覆盖原来的值
 //不支持个性查找表时,可不实现此函数
 unsigned char CustomLut_cbGetNearSorceDiff(void);
+
+//-----------------------源数据是否禁止修改------------------------------------
+//内部在覆盖与删除前，会调用此函数
+signed char CustomLut_cbIsDisModify(NolinearConvert_t Source);//源数据
+
 
 #endif //#define __CUSTOM_LUT_H

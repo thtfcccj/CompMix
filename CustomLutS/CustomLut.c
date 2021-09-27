@@ -60,14 +60,12 @@ unsigned char CustomLut_GetSize(void)
   return Pos;
 }  
 
-//-----------------------尝试覆盖一个查找表项函数-------------------------
-//返回是否覆盖成功(0成功,其它不成功)
-signed char CustomLut_ReplaceItem(NolinearConvert_t Source,//源数据
-                                 NolinearConvert_t Destination)//目标数据
+//-----------------------由数据源查找对应项函数------------------------------
+//在误差范围内时，认为找到了，返回位置，负未找到
+signed char CustomLut_FindItem(NolinearConvert_t Source)//源数据
 {
   unsigned char Size = CustomLut_GetSize();
-  if(Size >= CUSTOM_LUT_LUT_SIZE) return -1; //已满,禁止插入
-  //1.先查找源数据是否在覆盖范围
+	
   unsigned char Pos = 0;
   NolinearConvert_t PrvSource;
   for(; Pos < Size; Pos++){
@@ -82,8 +80,25 @@ signed char CustomLut_ReplaceItem(NolinearConvert_t Source,//源数据
     } 
   }
   if(Pos >= Size) return -1;//没有接近的
-  
+	return Pos;//找到了
+}
+
+
+//-----------------------尝试覆盖一个查找表项函数-------------------------
+//返回是否覆盖成功(0成功,其它不成功)
+signed char CustomLut_ReplaceItem(NolinearConvert_t Source,//源数据
+                                 NolinearConvert_t Destination)//目标数据
+{
+  unsigned char Size = CustomLut_GetSize();
+  if(Size >= CUSTOM_LUT_LUT_SIZE) return -1; //已满,禁止插入
+	if(CustomLut_cbIsDisModify(Source)) return -1;//禁止修改时,禁止插入
+  //1.先查找源数据是否在覆盖范围
+	signed char Pos = CustomLut_FindItem(Source);
+	if(Pos < 0) return Pos;//未找到
+	
+	
   //2.强制将此记录覆盖，再校验覆盖后的数据是否通过
+	NolinearConvert_t PrvSource = CustomLut[Pos].Source;
   CustomLut[Pos].Source = Source;
   NolinearConvert_t PrvDestination = CustomLut[Pos].Destination;
   CustomLut[Pos].Destination = Destination;
@@ -157,14 +172,20 @@ void CustomLut_InsertItem(NolinearConvert_t Source,//源数据
     CustomLut_AddItem(Source, Destination);//否则直接插入
 }
 
-
 //-----------------------删除一个查找表项函数-------------------------
 //返回是否成功
-signed char CustomLut_DelItem(unsigned char Item)//项位置
+signed char CustomLut_DelItem(unsigned char Item)//项位置,最高位为0x80时强制删除
 {
   unsigned char Size = CustomLut_GetSize();
   if(Size <= 2) return -1; //2点构成一条线,不能再删除了
-  if(Item >= Size) return -1;//不在表内
+
+  if(Item >= Size) return -1;//不在表内	
+	if(Item & 0x80) Item &=~0x80;//强制删除时不检查可写	
+	else{//检查,禁止修改时,禁止插入
+		if(CustomLut_cbIsDisModify(CustomLut[Item].Source))
+			return -1;
+  }
+
   Size -= 1;//表示最末数据索引
   //将后续有效数据往前移动
   for(; Item < Size; Item++){
