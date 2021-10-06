@@ -6,6 +6,9 @@
 ***********************************************************************/
 #ifndef __CUSTOM_LUT_H
 #define __CUSTOM_LUT_H
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 
 /*********************************************************************
                         相关配置

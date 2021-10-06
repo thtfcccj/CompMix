@@ -22,7 +22,7 @@ extern struct _gCfg gCfg;
                               相关函数
 ****************************************************************************/
 //--------------------------------初始化函数------------------------------
-void gCfg_Init(signed char IsInited);
+void gCfg_Init(unsigned char Inited,  signed char IsHandInit);
 
 //-----------------------------判断位配置是否置位--------------------------
 #define gCfg_BitIsSet(pos, bitMask)  (gCfg.Bit[pos] & (bitMask))

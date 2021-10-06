@@ -5,10 +5,15 @@
 ****************************************************************************/
 #ifndef _POT_H
 #define _POT_H
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 
 /*******************************************************************************
                                相关定义
 ********************************************************************************/
+//#define SUPPORT_POT      //此模块外部引用建议可编译项
+
 
 //支持硬件实时延时检测时，全局定义,同时定义延时检测周期 Pot_Task()调用周期为单位
 //#define SUPPORT_POT_DELAY_HW_CHECK      255            
@@ -24,7 +29,12 @@
 #else
   #define PotLen_t  unsigned short
 #endif
-
+  
+//默认位置,仅外部使用
+#ifndef POT_DEFAULT_POS
+  #define POT_DEFAULT_POS   128  //在中间
+#endif
+  
 /*******************************************************************************
                              相关结构
 ********************************************************************************/
@@ -70,8 +80,7 @@ void Pot_Task(void);
 void Pot_UpdatePos(PotLen_t NewPos);
 
 //---------------------------恢复电位器位置---------------------------------
-#define Pot_RestorePos() do{\
-  Pot_UpdatePos(pot, Pot.Info.Pos); }while(0)
+#define Pot_RestorePos() do{Pot_UpdatePos(Pot.Info.Pos); }while(0)
 
 //---------------------------保存电位器当前位置-----------------------------
 void Pot_SavePos(void);

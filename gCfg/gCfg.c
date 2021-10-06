@@ -20,12 +20,12 @@ static const struct _gCfg _Default = {
                              相关函数实现
 ****************************************************************************/
 //--------------------------------初始化函数------------------------------
-void gCfg_Init(signed char IsInited)
+void gCfg_Init(unsigned char Inited,  signed char IsHandInit)
 {
   memset(&gCfg, 0 , sizeof(struct _gCfg));
   
-  //内部变量初始化  
-  if(!IsInited){//装载默认
+  //内部变量初始化 ,仅允许首次初始化
+  if(!Inited && !IsHandInit){//装载默认
     memcpy(&gCfg, &_Default, sizeof(struct _gCfg));
     Eeprom_Wr(gCfg_GetInfoBase(),
               &gCfg,
