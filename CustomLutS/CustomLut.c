@@ -60,10 +60,10 @@ unsigned char CustomLut_GetSize(void)
   return Pos;
 }  
 
-//-----------------------是否为同一数据------------------------------
+//-----------------------是否为相拟项数据------------------------------
 //非0在范围，0还在范围
-signed char CustomLut_IsSame(NolinearConvert_t Center,//中心数据
-                             NolinearConvert_t Cur)   //当前数据
+signed char CustomLut_IsSimilar(NolinearConvert_t Center,//中心数据
+                                NolinearConvert_t Cur)   //当前数据
 {
   if(Cur >= Center){
     //比当前位置值大但在范围
@@ -77,18 +77,26 @@ signed char CustomLut_IsSame(NolinearConvert_t Center,//中心数据
   return 0;//不在范围
 }
 
-//-----------------------由数据源查找对应项函数------------------------------
+//-----------------------由数据源查找相似项函数------------------------------
 //在误差范围内时，认为找到了，返回位置，负未找到
-signed char CustomLut_FindItem(NolinearConvert_t Source)//源数据
+signed char CustomLut_FindSimilarItem(NolinearConvert_t Source)//源数据
 {
   unsigned char Size = CustomLut_GetSize();
-	
-  unsigned char Pos = 0;
-  NolinearConvert_t PrvSource;
-  for(; Pos < Size; Pos++){
-    if(CustomLut_IsSame(CustomLut[Pos].Source, Source)) return Pos;//找到了
+  for(unsigned char Pos = 0; Pos < Size; Pos++){
+    if(CustomLut_IsSimilar(CustomLut[Pos].Source, Source)) return Pos;//找到了
   }
   return -1;//没有接近的
+}
+
+//-----------------------由数据源查找相同项函数------------------------------
+//相同时，认为找到了，返回位置，负未找到
+signed char CustomLut_FindSameItem(NolinearConvert_t Source)//源数据
+{
+  unsigned char Size = CustomLut_GetSize();
+  for(unsigned char Pos = 0; Pos < Size; Pos++){
+    if(CustomLut[Pos].Source == Source) return Pos;//找到了
+  }
+  return -1;//没有接近的  
 }
 
 //-----------------------尝试覆盖一个查找表项函数-------------------------
@@ -100,9 +108,8 @@ signed char CustomLut_ReplaceItem(NolinearConvert_t Source,//源数据
   if(Size >= CUSTOM_LUT_LUT_SIZE) return -1; //已满,禁止插入
 	if(CustomLut_cbIsDisModify(Destination)) return -1;//禁止修改时,禁止插入
   //1.先查找源数据是否在覆盖范围
-	signed char Pos = CustomLut_FindItem(Source);
+	signed char Pos = CustomLut_FindSimilarItem(Source);
 	if(Pos < 0) return Pos;//未找到
-	
 	
   //2.强制将此记录覆盖，再校验覆盖后的数据是否通过
 	NolinearConvert_t PrvSource = CustomLut[Pos].Source;
@@ -183,16 +190,15 @@ void CustomLut_InsertItem(NolinearConvert_t Source,//源数据
 //返回是否成功
 signed char CustomLut_DelItem(unsigned char Item)//项位置,最高位为0x80时强制删除
 {
-  unsigned char Size = CustomLut_GetSize();
-  if(Size <= 2) return -1; //2点构成一条线,不能再删除了
-
-  if(Item >= Size) return -1;//不在表内	
-	if(Item & 0x80) Item &=~0x80;//强制删除时不检查可写	
-	else{//检查,禁止修改时,禁止插入
+  unsigned char Size = CustomLut_GetSize();  
+	if(Item & 0x80) Item &= ~0x80;//强制删除时不检查可写	  
+	else{//检查,禁止修改时,禁止插入  
+    if(Size <= 2) return -1; //2点构成一条线,不能再删除了
+    //禁止修改时,禁止插入  
 		if(CustomLut_cbIsDisModify(CustomLut[Item].Destination))
 			return -1;
   }
-
+  if(Item >= Size) return -1;//不在表内	  
   Size -= 1;//表示最末数据索引
   //将后续有效数据往前移动
   for(; Item < Size; Item++){

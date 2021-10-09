@@ -45,14 +45,18 @@ void CustomLut_Init(signed char Inited);
 //-----------------------得到查找表大小函数--------------------------------
 unsigned char CustomLut_GetSize(void);
 
-//-----------------------是否为同一数据------------------------------
+//-----------------------是否为相拟项数据------------------------------
 //非0在范围，0还在范围
-signed char CustomLut_IsSame(NolinearConvert_t Center,//中心数据
-                             NolinearConvert_t Cur);   //当前数据
+signed char CustomLut_IsSimilar(NolinearConvert_t Center,//中心数据
+                                NolinearConvert_t Cur);   //当前数据
 
-//-----------------------由数据源查找对应项函数------------------------------
+//-----------------------由数据源查找相似项函数------------------------------
 //在误差范围内时，认为找到了，返回位置，负未找到
-signed char CustomLut_FindItem(NolinearConvert_t Source); //源数据
+signed char CustomLut_FindSimilarItem(NolinearConvert_t Source);//源数据
+
+//-----------------------由数据源查找相同项函数------------------------------
+//相同时，认为找到了，返回位置，负未找到
+signed char CustomLut_FindSameItem(NolinearConvert_t Source);//源数据
 
 //-----------------------尝试覆盖一个查找表项函数-------------------------
 //返回是否覆盖成功(0成功,其它不成功)
