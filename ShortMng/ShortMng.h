@@ -6,15 +6,21 @@
 *******************************************************************************/
 #ifndef _SHORT_MNG_H
 #define _SHORT_MNG_H
-
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 /******************************************************************************
                         相关配置
 ******************************************************************************/
-
-#define SHORT_MNG_WAIT_OV   2  //接入负载后，等待检测短路的时间,s为单位
-#define SHORT_MNG_NOR_OV    3  //检查到短路时，认为还没有恢复的时间,s为单位
-
-#define SHORT_MNG_PTC_WAIT  20  //自恢复保险恢复时间,s为单位
+#ifndef SHORT_MNG_WAIT_OV
+  #define SHORT_MNG_WAIT_OV   2  //接入负载后，等待检测短路的时间,s为单位
+#endif
+#ifndef SHORT_MNG_NOR_OV
+  #define SHORT_MNG_NOR_OV    3  //检查到短路时，认为还没有恢复的时间,s为单位
+#endif
+#ifndef SHORT_MNG_PTC_WAIT
+  #define SHORT_MNG_PTC_WAIT  20  //自恢复保险恢复时间,s为单位
+#endif
 
 /******************************************************************************
                         相关结构
