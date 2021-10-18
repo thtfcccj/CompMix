@@ -5,7 +5,9 @@
 ************************************************************************/
 #ifndef __ZIP_TIME_H
 #define __ZIP_TIME_H
-
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 /************************************************************************
                            相关定义
 ************************************************************************/
@@ -30,7 +32,6 @@
 #define ZIP_TIME_YEAR_COUNT   0x3f  //最大表示范围
 #define ZIP_TIME_YEAR_SHIFT   26
 #define ZIP_TIME_YEAR_MASK    ((unsigned long)ZIP_TIME_YEAR_COUNT << ZIP_TIME_YEAR_SHIFT)
- 
 
 extern unsigned long RtcZipTime; //当前实时时间
 

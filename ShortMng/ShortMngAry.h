@@ -6,7 +6,9 @@
 *******************************************************************************/
 #ifndef _SHORT_MNG_ARY_H
 #define _SHORT_MNG_ARY_H
-
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 /******************************************************************************
                         相关配置
 ******************************************************************************/
@@ -43,7 +45,7 @@ void ShortMngAry_Init(unsigned char ShutDelay);
 void ShortMngAry_Task(void);
 
 //-------------------------------置为掉电模式------------------------------
-void ShortMngAry_ShutDown();//对应通道  
+void ShortMngAry_ShutDown(void);//对应通道  
 
 //------------------------------对应通道是否接入------------------------------
 signed char ShortMngAry_IsShut(unsigned char Ch);
