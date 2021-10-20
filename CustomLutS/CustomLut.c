@@ -99,6 +99,18 @@ signed char CustomLut_FindSameItem(NolinearConvert_t Source)//源数据
   return -1;//没有接近的  
 }
 
+//-----------------------由数据目标查找数据源函数------------------------------
+//相同时，认为找到了，返回位置，负未找到
+NolinearConvert_t CustomLut_FindSourceItem(NolinearConvert_t Destination)//目标数据
+{
+  unsigned char Size = CustomLut_GetSize();
+  for(unsigned char Pos = 0; Pos < Size; Pos++){
+    if(CustomLut[Pos].Destination == Destination) //找到了
+      return CustomLut[Pos].Source;
+  }
+  return NOLINEAR_CONVERT_NULL;//没有接近的  
+}
+
 //-----------------------尝试覆盖一个查找表项函数-------------------------
 //返回是否覆盖成功(0成功,其它不成功)
 signed char CustomLut_ReplaceItem(NolinearConvert_t Source,//源数据
