@@ -65,7 +65,10 @@ signed char _GetHourFromBuf(const unsigned char *pBuf){
 void HourIncFlash_Init(unsigned char IsInited)
 {
   memset(&HourIncFlash, 0, sizeof(struct _HourIncFlash));
-  HourIncFlash.HourCalibrationOV = 0xffff;//校准用
+  #ifdef SUPPORT_HOUR_INC_FLASH_CAL //允许校准时
+    HourIncFlash.HourCalibrationOV = 0xffff;
+  #endif
+
   //=========================Info初始化=========================
   if(!IsInited){//装载默认
     memcpy(&HourIncFlash, &_InfoDefault, sizeof(struct _HourIncFlashInfo));
@@ -122,24 +125,37 @@ static const unsigned char _BitedPos0[] = {
 #endif
 
 //---------------------------Tick任务函数-------------------------------
-//每Tick(>= 0.5ms)调用一次，建议放在时基中断里
+//if(HOUR_INC_FLASH_TO_HOUR_OV > 1)时需调用，放在与基对应的时基内周期调用
 void HourIncFlash_TickTask(void)
 {
-  HourIncFlash.TickTimer++;
-  if(HourIncFlash.TickTimer) return;
-  //HourIncFlash.TickTimer计数到0， 一个周期到了
-  HourIncFlash.ToHourTimer++;
+  #if (HOUR_INC_FLASH_TO_HOUR_OV > 36000)//0.1秒以下还有计数时,U16装不下了。
+    HourIncFlash.TickTimer++;
+    if(HourIncFlash.TickTimer) return;
+    //HourIncFlash.TickTimer计数到0， 一个周期到了
+  #endif 
+
+  #if (HOUR_INC_FLASH_TO_HOUR_OV > 1)//1小时以下计数时
+    HourIncFlash.ToHourTimer++;
+  #endif
+
+  #ifdef SUPPORT_HOUR_INC_FLASH_CAL //允许校准时
   if(HourIncFlash.HourCalibrationOV) HourIncFlash.HourCalibrationOV--;
+  #endif
 }
 
 //----------------------------128Tick任务函数----------------------------
-//放入128Tick ,用于保存Flash，返回0：小时未到，1：小时到了
+//if(HOUR_INC_FLASH_TO_HOUR_OV <= 1时) 1小时到调用一次，即直接保存小时
+//if(HOUR_INC_FLASH_TO_HOUR_OV < 36000) 时HourIncFlash_TickTask后调用
+//否则放在HOUR_INC_FLASH_TO_HOUR_OV *128的时基内周期调用
 signed char HourIncFlash_128TickTask(void)
 {
-  if(HourIncFlash.ToHourTimer < HourIncFlash.Info.ToHourCount) return 0;
-  HourIncFlash.ToHourTimer = 0;
+  #if (HOUR_INC_FLASH_TO_HOUR_OV > 1)//1小时以下计数时
+    if(HourIncFlash.ToHourTimer < HourIncFlash_GetHourCount()) return 0;
+    HourIncFlash.ToHourTimer = 0;
+  #endif
   //1小时到了，保存处理
   HourIncFlash.InPageHour++;
+  if(HourIncFlash.OnHour < 0xffff) HourIncFlash.OnHour++;
   //=========================一页写完了===========================
   if(HourIncFlash.InPageHour >= _GetPageHourCount()){
     Flash_Unlock();
@@ -178,11 +194,16 @@ signed char HourIncFlash_128TickTask(void)
   return 1;
 }
 
-//---------------------------------小时校准----------------------------------
-//自开机或上次校准到1小时时，调用此函数校准小时
-void HourIncFlash_HourCalibration(void)
+//------------------------------校准函数-------------------------------------
+//HourIncFlash_HaveCalibration()时可调用, 默认一般1小时左右
+#ifdef SUPPORT_HOUR_INC_FLASH_CAL
+void HourIncFlash_Calibration(unsigned short Sec) //秒为单位
 {
+  if(HourIncFlash.HourCalibrationOV == 0) return; //过了时间点了
+  //将Sec归一化至1小时以与基对应
   unsigned short ToHourTimer  = 0xffff - HourIncFlash.HourCalibrationOV;
+  unsigned long Data = ((unsigned  long)3600 << 10) / Sec;
+  ToHourTimer = (Data * ToHourTimer) >> 10;
   //值太小，时间不够  
   if(ToHourTimer < (HOUR_INC_FLASH_TO_HOUR_DEFAULT / 60)) return;
   HourIncFlash.Info.ToHourCount = ToHourTimer;
@@ -192,6 +213,7 @@ void HourIncFlash_HourCalibration(void)
   HourIncFlash.HourCalibrationOV = 0xffff;//可重新执行校准
   HourIncFlash.ToHourTimer = ToHourTimer;//任务时执行加1小时
 }
+#endif
 
 //---------------------------------模块恢复至0时间---------------------------
 void HourIncFlash_ResetToHour0(void)
@@ -224,10 +246,11 @@ signed long HourIncFlash_GetAddHour(unsigned long AbsHour)
 }
 
 //----------------------------------得到小时中的秒数--------------------------
+#if (HOUR_INC_FLASH_TO_HOUR_OV > 1)//1小时以下计数时
 unsigned short HourIncFlash_GetSecInHour(void)
 {
-  return ((unsigned long)HourIncFlash.ToHourTimer * 3600) / 
-          HourIncFlash.Info.ToHourCount;
+  return ((unsigned long)HourIncFlash.ToHourTimer * 3600) / HourIncFlash_GetHourCount();
 }
+#endif
 
 

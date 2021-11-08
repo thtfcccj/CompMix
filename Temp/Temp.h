@@ -15,11 +15,13 @@
                              相关配置
 *****************************************************************************/
 
+//是否支持此模块，外部可选时定义
+//#define SUPPORT_TEMP  
+
 //支持滤波定义(本局里配置)
 //#define SUPPORT_TEMP_DEV_FILETER   
 //#define SUPPORT_TEMP_DEV_FILETER_AVERVGE   //支持简单平均时
 //#define SUPPORT_TEMP_DEV_FILETER_AVERVGE_MID  //支持平均但去除最大最小值时
-
 
 //定义是否支持温补曲线(本局里配置)
 //#define SUPPORT_TEMP_LUT     
