@@ -157,7 +157,7 @@ signed char HourIncFlash_128TickTask(void)
   HourIncFlash.InPageHour++;
   if(HourIncFlash.OnHour < 0xffff) HourIncFlash.OnHour++;
   //=========================一页写完了===========================
-  if(HourIncFlash.InPageHour >= _GetPageHourCount()){
+  if(HourIncFlash.InPageHour > _GetPageHourCount()){//到GetPageHourCount+1回环
     Flash_Unlock();
     Flash_ErasePage(HOUR_INC_FLASH_PAGE_BASE); //先擦除
     Flash_Lock(); 
@@ -185,7 +185,7 @@ signed char HourIncFlash_128TickTask(void)
     if(BitPos == 0) Buf[0] = 0;//本字节满了
     else Buf[0] = _BitedPos0[BitPos];//高位的满了
   #else
-    WrPos = (HourIncFlash.InPageHour - 1) * (HOUR_INC_FLASH_WR_BCELL / 8); 
+    WrPos = (HourIncFlash.InPageHour - 1) * (HOUR_INC_FLASH_WR_BCELL / 8); //-1了
     memset(Buf, 0, sizeof(Buf)); //暂先全部写为0
   #endif
   Flash_Write((HOUR_INC_FLASH_PAGE_BASE + _HEADER_SIZE) +  
@@ -240,8 +240,9 @@ void HourIncFlash_ResetToHour0(void)
 //负值表示保存的绝对时间比当前小时点要早
 signed long HourIncFlash_GetAddHour(unsigned long AbsHour)
 {
+  //到GetPageHourCount+1回环
   unsigned long CurAbsHour = HourIncFlash.InPageHour + 
-    (unsigned long)_GetPageHourCount() * HourIncFlash.EreaseCount;
+    (unsigned long)(_GetPageHourCount() + 1) * HourIncFlash.EreaseCount;
   return CurAbsHour - AbsHour;
 }
 

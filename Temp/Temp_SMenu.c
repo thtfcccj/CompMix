@@ -16,7 +16,9 @@
 //   输入570: 表示标定至70度
 static void _GetTemp(struct _SMenuUser *pUser, unsigned char Type)
 {
-  pUser->Cfg = SMENU_USR_ADJ_BIT | SMENU_USR_REAL_RD;
+  if(SMenuUser_IsMoreAdmin())
+    pUser->Cfg = SMENU_USR_ADJ_BIT | SMENU_USR_REAL_RD;//可标定
+  else pUser->Cfg = SMENU_USR_ADJ_BIT | SMENU_USR_REAL_RD | SMENU_USR_RD;//只读
   pUser->Cfg2 = SMENU_USR2_NEGATIVE; //可为负值 
   pUser->Adj = Temp_GetTemp() - TEMP_BASE; 
   pUser->Min = -TEMP_BASE;
@@ -32,7 +34,7 @@ static void _SetTemp(struct _SMenuUser *pUser, unsigned char Type)
 
 //主结结构
 const struct _SMenuFun SiSMenu_Temp = {
-  {LED_SIGN_L, LED_SIGN_O, LED_SIGN_U, LED_SIGN_C | LED_SIGN_DOT,}, //C.VOL
+  {LED_SIGN_C, LED_SIGN_P | LED_SIGN_DOT, LED_SIGN_E, LED_SIGN_T,}, //TEP.C
   _GetTemp, _SetTemp,
 };
 

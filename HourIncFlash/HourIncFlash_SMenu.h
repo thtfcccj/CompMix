@@ -16,6 +16,10 @@
 //开机小时数<=9h时,显示"小时数.分钟.10秒.计时值(xxx3.6s为单位)
 extern const struct _SMenuFun SiSMenu_HourIncFlash; 
 
+//-----------------------设备工作天数与复位------------------------------
+//超级用户允许将时间复位于0
+extern const struct _SMenuFun SiSMenu_WorkDay;
+
 #endif //__HOUR_INC_FLASH_SMENU_H
 
 

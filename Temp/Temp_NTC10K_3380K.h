@@ -39,8 +39,8 @@
 
 //默认温度零点AD值
 #define TEMP_DEFAULT_ZERO   -1300  
-
-//默认温度AD值 Q值
+                                     
+//默认温度增益值 Q值
 #define TEMP_DEFAULT_GAIN   871
 
 //温差标定时，最小温差值
