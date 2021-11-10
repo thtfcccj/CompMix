@@ -121,18 +121,18 @@ signed char Temp_Calibration(unsigned char TargetTemp, //目标浓度值
 unsigned short Temp_cbGetCurTempSignal(void);
 
 //------------------------------------温度校正--------------------------------
-//如：线性度校正，其它附加处理等
+//如：线性度校正，其它附加处理等,输入为Q8温度，输出为结果温度
 #ifdef SUPPORT_TEMP_LUT
-  unsigned char Temp_cbAppendPro(unsigned char OrgTemp);
-#else//不支持时
-  #define Temp_cbAppendPro(temp) (temp)  
+  unsigned char Temp_cbAppendPro(unsigned short OrgTempQ8);
+#else//不支持时,直接转换
+  #define Temp_cbAppendPro(tempQ8) ((tempQ8) >> 8)
 #endif
 
 //----------------------------------温度反校正---------------------------------
-//与Temp_cbAppendPro()成对使用
+//与Temp_cbAppendPro()成对使用,输入为结果温度，输出为原始温度(非Q8)
 #ifdef SUPPORT_TEMP_LUT
-  unsigned char Temp_cbAppendPro(unsigned char CurTemp);
-#else//不支持时
+  unsigned char Temp_cbAntiAppendPro(unsigned char CurTemp);
+#else//不支持时,直接转换
   #define Temp_cbAntiAppendPro(temp) (temp)
 #endif
 

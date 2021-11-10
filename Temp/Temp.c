@@ -45,15 +45,14 @@ void Temp_Update(void) //原始信号(为负时需上浮固定值为正)
     unsigned long Data = OrgSignal - Temp.Info.Zero;
     //->X增益
     Data *= Temp.Info.Gain;
-    Data >>= TEMP_GAIN_Q;
-    if(Data > 255){//正超限时
+    Data >>= (TEMP_GAIN_Q - 8); //Q8数以在附加校正时提高校准精度
+    if(Data > 0xffff){//正超限时
       CurTemp = 255;
       Temp.Flag |= TEMP_HI_OV_ERR;
     }
     else{
-      CurTemp = Data;
+      CurTemp = Temp_cbAppendPro(Data); //附加校正
       Temp.Flag &= ~(TEMP_HI_OV_ERR | TEMP_LOW_OV_ERR);
-      CurTemp = Temp_cbAppendPro(CurTemp); //附加校正
     }
   }
   else{//负超限了

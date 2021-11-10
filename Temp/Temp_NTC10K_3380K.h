@@ -25,6 +25,9 @@
 *******************************************************************************/
 //根据硬件特性，支持多种不同的滤波方式:
 
+//支持温补曲线时开启(此应用里可开始)
+#define SUPPORT_TEMP_LUT
+
 //支持滤波时,同时定义缓冲个数, <255
 //#define SUPPORT_TEMP_FILETER  10 
 
@@ -37,11 +40,11 @@
 //增益使用的Q值
 #define TEMP_GAIN_Q  15
 
-//默认温度零点AD值
-#define TEMP_DEFAULT_ZERO   -1300  
+//默认温度零点AD值(样品试验结果)
+#define TEMP_DEFAULT_ZERO   -499  
                                      
-//默认温度增益值 Q值
-#define TEMP_DEFAULT_GAIN   871
+//默认温度增益值 Q值(样品试验结果)
+#define TEMP_DEFAULT_GAIN   1089
 
 //温差标定时，最小温差值
 #define TEMP_DIFF_TEPM_MIN   10 
