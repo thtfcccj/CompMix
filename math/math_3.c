@@ -274,5 +274,24 @@ unsigned short FindUsPos(const unsigned short *pLUT, //查找表
   return Pos;
 }
 
+//-------------------------十六进制字符转半字节----------------------
+//ASC:‘A’~‘F’与‘0’~‘9’ 转换为半字节，未检查数据符合性
+unsigned char Asc2HalfByte(unsigned char L)
+{
+  if(L >= 'A') return L - ('A' - 10); //A开始
+  else return L - '0'; //0开始
+}
+
+//-------------------------十六进制字符转字节----------------------
+//高低位 ASC:‘A’~‘F’与‘0’~‘9’ 转换为半字节，未检查数据符合性
+unsigned char Asc2Byte(unsigned char H, unsigned char L)
+{
+  unsigned char Data;
+  if(H >= 'A') Data = H - ('A' - 10); //A开始
+  else Data = H - '0'; //0开始
+  Data <<= 4;
+  if(L >= 'A') return Data + (L - ('A' - 10)); //A开始
+  else return Data + (L - '0'); //0开始
+}
 
 

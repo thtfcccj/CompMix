@@ -101,6 +101,14 @@ signed char MsbFull2SAry(unsigned short *psData,
 unsigned short FindUsPos(const unsigned short *pLUT, //查找表
                            unsigned short LutLen,     //查找表长度
                            unsigned short Id);         //要查找的ID号
+                           
+//-------------------------十六进制字符转半字节----------------------
+//ASC:‘A’~‘F’与‘0’~‘9’ 转换为半字节，未检查数据符合性
+unsigned char Asc2HalfByte(unsigned char L);
 
+//-------------------------十六进制字符转字节----------------------
+//高低位 ASC:‘A’~‘F’与‘0’~‘9’ 转换为半字节，未检查数据符合性
+unsigned char Asc2Byte(unsigned char H, unsigned char L);                          
+                           
 #endif
 
