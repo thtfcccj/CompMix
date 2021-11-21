@@ -21,7 +21,10 @@
 #define ZIP_TIME_MIN_MASK    ((unsigned long)0x3f << ZIP_TIME_MIN_SHIFT) 
 //时: 范围0-23
 #define ZIP_TIME_HOUR_SHIFT   12
-#define ZIP_TIME_HOUR_MASK    ((unsigned long)0x1f << ZIP_TIME_HOUR_SHIFT) 
+#define ZIP_TIME_HOUR_MASK    ((unsigned long)0x1f << ZIP_TIME_HOUR_SHIFT)
+//时间掩码:
+#define ZIP_TIME_TIME_MASK    (ZIP_TIME_SEC_MASK | ZIP_TIME_MIN_MASK | ZIP_TIME_HOUR_MASK)
+
 //日: 范围1-31
 #define ZIP_TIME_DATE_SHIFT   17
 #define ZIP_TIME_DATE_MASK    ((unsigned long)0x1f << ZIP_TIME_DATE_SHIFT) 
@@ -32,6 +35,9 @@
 #define ZIP_TIME_YEAR_COUNT   0x3f  //最大表示范围
 #define ZIP_TIME_YEAR_SHIFT   26
 #define ZIP_TIME_YEAR_MASK    ((unsigned long)ZIP_TIME_YEAR_COUNT << ZIP_TIME_YEAR_SHIFT)
+//日期掩码:
+#define ZIP_TIME_DATT_SHIFT     ZIP_TIME_DATE_SHIFT
+#define ZIP_TIME_DATT_MASK    (ZIP_TIME_DATE_MASK | ZIP_TIME_MOUTH_MASK | ZIP_TIME_YEAR_MASK)
 
 extern unsigned long RtcZipTime; //当前实时时间
 
@@ -89,6 +95,7 @@ void ZipTime_ToStringCh(char *pString,
 ************************************************************************/
 
 //---------------------------------得到年起始----------------------------
+//使用ZipTimeEx模块时，需从2000开始
 //unsigned short ZipTime_cbGetStartYear(void);
 #define ZipTime_cbGetStartYear() (YEAR_START)
 #endif
