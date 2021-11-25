@@ -294,4 +294,12 @@ unsigned char Asc2Byte(unsigned char H, unsigned char L)
   else return Data + (L - '0'); //0开始
 }
 
+//----------------------双字转字节防溢出处理-------------------------------
+//超过255返回255
+unsigned char Us2ByteFull(unsigned short Data)
+{
+  if(Data <= 255) return Data;
+  return 255;
+}
+
 

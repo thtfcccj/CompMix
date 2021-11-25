@@ -26,8 +26,8 @@ void gFlag_Init(void);
 
 //--------------------------------位标志操作------------------------------
 #define gFlag_BitIsSet(pos, bitMask)  (gFlag.Bit[pos] & (bitMask))
-#define gFlag_SetBit(pos, bitMask)    do{gFlag.Byte[pos] |= bitMask; }while(0)  
-#define gFlag_ClrBit(pos, bitMask)    do{gFlag.Byte[pos] &= ~(bitMask); }while(0)  
+#define gFlag_SetBit(pos, bitMask)    do{gFlag.Bit[pos] |= bitMask; }while(0)  
+#define gFlag_ClrBit(pos, bitMask)    do{gFlag.Bit[pos] &= ~(bitMask); }while(0)  
 
 //-----------------------------字节位操作---------------------------------
 #define gFlag_GetByte(pos)        (gFlag.Byte[pos])
