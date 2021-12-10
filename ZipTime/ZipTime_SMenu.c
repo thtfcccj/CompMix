@@ -25,7 +25,7 @@ static void _SetYear(struct _SMenuUser *pUser, unsigned char Type)
 
 //主结结构
 const struct _SMenuFun SMenu_ZipTime_Year = {
-  {LED_SIGN_N, LED_SIGN_I,LED_SIGN_A,LED_SIGN_N}, //NIAN
+  {LED_SIGN_N, LED_SIGN_A,LED_SIGN_I,LED_SIGN_N}, //NIAN
    _GetYear, _SetYear,
 };
 
@@ -45,7 +45,7 @@ static void _SetMouth(struct _SMenuUser *pUser, unsigned char Type)
 
 //主结结构
 const struct _SMenuFun SMenu_ZipTime_Mouth = {
-  {0, LED_SIGN_E,LED_SIGN_E,LED_SIGN_Y}, //YUE
+  {0, LED_SIGN_E,LED_SIGN_U,LED_SIGN_Y}, //YUE
    _GetMouth, _SetMouth,
 };
 
@@ -65,7 +65,7 @@ static void _SetDay(struct _SMenuUser *pUser, unsigned char Type)
 
 //主结结构
 const struct _SMenuFun SMenu_ZipTime_Day = {
-  {0, 0,LED_SIGN_I,LED_SIGN_R}, //RI
+  {0, 0,LED_SIGN_1, LED_SIGN_R}, //RI
    _GetDay, _SetDay,
 };
 
@@ -96,7 +96,7 @@ static void _GetMinte(struct _SMenuUser *pUser, unsigned char Type)
   pUser->Cfg = SMENU_USR_ADJ_BIT;
   pUser->Adj = ZipTime_GetInfo(4, ZipTime_GetRTC());
   //pUser->Min = 0;
-  pUser->Max = 23;  
+  pUser->Max = 59;  
   
 }
 static void _SetMinte(struct _SMenuUser *pUser, unsigned char Type)
