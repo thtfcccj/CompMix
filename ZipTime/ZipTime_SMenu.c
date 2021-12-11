@@ -13,7 +13,7 @@
 //----------------------------年修改--------------------------------
 static void _GetYear(struct _SMenuUser *pUser, unsigned char Type)
 {
-  pUser->Cfg = SMENU_USR_ADJ_BIT;
+  pUser->Cfg = SMENU_USR_ADJ_BIT | SMENU_USR_REAL_RD; //实时更新
   pUser->Adj = ZipTime_cbGetStartYear() + ZipTime_GetInfo(0, ZipTime_GetRTC());
   pUser->Min = ZipTime_cbGetStartYear();
   pUser->Max = ZipTime_cbGetStartYear() + ZIP_TIME_YEAR_MAX;  
@@ -32,7 +32,7 @@ const struct _SMenuFun SMenu_ZipTime_Year = {
 //----------------------------月修改--------------------------------
 static void _GetMouth(struct _SMenuUser *pUser, unsigned char Type)
 {
-  pUser->Cfg = SMENU_USR_ADJ_BIT;
+  pUser->Cfg = SMENU_USR_ADJ_BIT | SMENU_USR_REAL_RD; //实时更新
   pUser->Adj = ZipTime_GetInfo(1, ZipTime_GetRTC());
   pUser->Min = 1;
   pUser->Max = 12;  
@@ -52,12 +52,12 @@ const struct _SMenuFun SMenu_ZipTime_Mouth = {
 //----------------------------日修改--------------------------------
 static void _GetDay(struct _SMenuUser *pUser, unsigned char Type)
 {
-  pUser->Cfg = SMENU_USR_ADJ_BIT;
+  pUser->Cfg = SMENU_USR_ADJ_BIT | SMENU_USR_REAL_RD; //实时更新
   pUser->Adj = ZipTime_GetInfo(2, ZipTime_GetRTC());
   //pUser->Min = 0;
-  pUser->Max = 31;  
-  
+  pUser->Max = 31;
 }
+
 static void _SetDay(struct _SMenuUser *pUser, unsigned char Type)
 {
   RTC_SetInfo(2,  pUser->Adj);
@@ -72,7 +72,7 @@ const struct _SMenuFun SMenu_ZipTime_Day = {
 //----------------------------时修改--------------------------------
 static void _GetHour(struct _SMenuUser *pUser, unsigned char Type)
 {
-  pUser->Cfg = SMENU_USR_ADJ_BIT;
+  pUser->Cfg = SMENU_USR_ADJ_BIT | SMENU_USR_REAL_RD; //实时更新
   pUser->Adj = ZipTime_GetInfo(3, ZipTime_GetRTC());
   //pUser->Min = 0;
   pUser->Max = 23;  
@@ -93,7 +93,7 @@ const struct _SMenuFun SMenu_ZipTime_Hour = {
 //同时秒归零
 static void _GetMinte(struct _SMenuUser *pUser, unsigned char Type)
 {
-  pUser->Cfg = SMENU_USR_ADJ_BIT;
+  pUser->Cfg = SMENU_USR_ADJ_BIT | SMENU_USR_REAL_RD; //实时更新
   pUser->Adj = ZipTime_GetInfo(4, ZipTime_GetRTC());
   //pUser->Min = 0;
   pUser->Max = 59;  
@@ -101,8 +101,7 @@ static void _GetMinte(struct _SMenuUser *pUser, unsigned char Type)
 }
 static void _SetMinte(struct _SMenuUser *pUser, unsigned char Type)
 {
-  RTC_SetInfo(4,  pUser->Adj);
-  RTC_SetInfo(5,  0);  //同时秒归零
+  RTC_SetInfo(4+2,  pUser->Adj);//同时秒归零 
 }
 
 //主结结构
