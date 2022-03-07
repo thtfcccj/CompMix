@@ -106,10 +106,33 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
 //表空间分配以2字节对齐，以对齐颜色等
 
 /***********************************************************************
-                        相关接口
+                        固定区域绘图相关-含接口函数与回调函数
 ***********************************************************************/
 
+//----------------------------固定区域绘图------------------------------
+void RP_PaintFixArea(unsigned char Handle,
+                     unsigned char PlotMask,//绘制区域7b所有,0-6b变量0x7f所有
+                     const struct _RpFixAreaDesc *pDesc);
 
+
+/***********************************************************************
+                           回调函数
+***********************************************************************/
+
+//----------------------------由图标AryID找图信息------------------------------
+const struct _RpIconDesc *RP_cbGetIconDesc(unsigned char Handle,
+                                           unsigned char IconAryId);
+
+//----------------------------由图标ID找到图数据------------------------------
+const unsigned char *RP_cbGetIcon(unsigned char Handle,
+                                   unsigned char IconId);
+
+
+
+//----------------------------由图标ID找图标前景色------------------------------
+//由图标ID找到图
+Color_t RP_cbGetIconFg(unsigned char Handle,
+                       unsigned char IconId);
 
 #endif  //#ifndef __RESOURCE_PLOT_H 
 
