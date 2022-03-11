@@ -97,6 +97,7 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
 //其它参数,定义为：
 #define RP_PARA_FONT_MASK    0x0F  //所示使用的字体ID号
 
+
 //注1：系统将相同类型的绘图参数函数组成阵列，从中找出该函数进行给制。
 //注2：资源文件应提供变量ID相关的颜色(可根据状态切换颜色)以用于绘制。
 
@@ -115,9 +116,9 @@ void RP_PaintFixArea(unsigned char Handle,
                      const struct _RpFixAreaDesc *pDesc);
 
 
-/***********************************************************************
+/********************************************************************************
                            回调函数
-***********************************************************************/
+********************************************************************************/
 
 //----------------------------由图标AryID找图信息------------------------------
 const struct _RpIconDesc *RP_cbGetIconDesc(unsigned char Handle,
@@ -127,12 +128,29 @@ const struct _RpIconDesc *RP_cbGetIconDesc(unsigned char Handle,
 const unsigned char *RP_cbGetIcon(unsigned char Handle,
                                    unsigned char IconId);
 
-
+//----------------------------由图标ID找到图数据大小----------------------------
+unsigned long RP_cbGetIconSize(unsigned char Handle,
+                               unsigned char IconId);
 
 //----------------------------由图标ID找图标前景色------------------------------
 //由图标ID找到图
 Color_t RP_cbGetIconFg(unsigned char Handle,
                        unsigned char IconId);
+
+
+//----------------------------由参数AryID找参数信息----------------------------
+const struct _RpParaDesc *RP_cbGetParaDesc(unsigned char Handle,
+                                            unsigned char ParaAryId);
+
+//----------------------------由参数AryID找字符串------------------------------
+const char * RP_cbGetString(unsigned char Handle,
+                             unsigned char ParaAryId);
+
+//----------------------------由参数ID找图标前景色------------------------------
+//由图标ID找到图
+Color_t RP_cbGetParaFg(unsigned char Handle,
+                       unsigned char ParaId);
+
 
 #endif  //#ifndef __RESOURCE_PLOT_H 
 
