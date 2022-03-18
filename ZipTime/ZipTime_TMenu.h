@@ -19,15 +19,13 @@ extern const TMenu_t TMenu_ZipTime; //菜单结构
 *******************************************************************************/
 
 //----------------------------自已的父菜单----------------------------------
-#ifndef ZIP_TIME_ZMENU_PARENT
-  extern const TMenu_t Menu_Para;
-  #define ZIP_TIME_TMENU_PARENT   Menu_Para
+#ifndef ZIP_TIME_TMENU_PARENT
+  #define ZIP_TIME_TMENU_PARENT   NULL //外部必须实现，此定义仅为编译通过
 #endif
 
-
 //------------------/由资源文件获取多国语言时ID前缀--------------------------
-#ifndef ZIP_TIME_YMENU_PID //需由外部实一
-  #define ZIP_TIME_YMENU_PID 0x80
+#ifndef ZIP_TIME_TMENU_PID //需由外部实一
+  #define ZIP_TIME_TMENU_PID 0x80
 #endif
 
 //-------------------------------设置当前时间----------------------------------
