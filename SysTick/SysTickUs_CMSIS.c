@@ -12,7 +12,7 @@ extern void SysTick_cbHandlerNotify(void); //定时器通报,外部实现
 //---------------------时基定时器0初始化函数------------------------
 void SysTickUs_Init()
 {
-  SysTick_Config(SystemCoreClock / 1000); //配置为1ms一次中断,形参为向下计时load值 
+  SysTick_Config((unsigned long)SYS_MHZ * 1000); //配置为1ms一次中断,形参为向下计时load值 
 }
 
 //---------------------------cm3中断实现--------------------------
