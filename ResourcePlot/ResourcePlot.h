@@ -72,6 +72,7 @@ struct _RpIconDesc{        //->此结构在资源定中的前缀标识  "RPI_ARY"
   unsigned char xl;       //位置x轴低8位
   unsigned char yl;       //位置y轴低8位 
 };
+#define SIZEOF_RP_ICON_DESC   3//实际占位
 
 //信息位定义为：
 #define RP_ICON_ID_MASK      0x3F  //b0~b5图标ID
@@ -89,6 +90,7 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
   unsigned char yl;       //位置y轴低8位
   unsigned char Para;     //其它参数，见定义 
 };
+#define SIZEOF_RP_PARA_DESC   4//实际占位
 
 //信息位定义为：
 #define RP_PARA_ID_MASK      0x3F  //b0~b5参数ID
@@ -106,15 +108,37 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
 //颜色阵列：统一以“C_”开头，后跟用途等信息
 //表空间分配以2字节对齐，以对齐颜色等
 
-/***********************************************************************
-                        固定区域绘图相关-含接口函数与回调函数
-***********************************************************************/
+/*****************************************************************************
+                        绘图函数
+*****************************************************************************/
+
+//-------------------------指定位置图标绘图-----------------------------
+//更新某个具体图标
+void RP_PaintIcon(unsigned char Handle,const struct _RpIconDesc *pDesc,
+                  unsigned short x, unsigned short y);//相对x,y
+
+//-------------------------指定位置参数绘图-----------------------------
+//更新某个具体参数
+void RP_PaintPara(unsigned char Handle,const struct _RpParaDesc *pDesc,
+                  unsigned short x, unsigned short y);//相对x,y
 
 //----------------------------固定区域绘图------------------------------
-void RP_PaintFixArea(unsigned char Handle,
-                     unsigned char PlotMask,//绘制区域7b所有,0-6b变量0x7f所有
+//绘制整个区域或局部
+void RP_FixArea(unsigned char Handle,
+                unsigned char PlotMask,//0b所有，1b图标,2b参数
+                const struct _RpFixAreaDesc *pDesc);
+
+//-----------------------固定区域更新某个指定图标------------------------------
+//用于主动更新
+void RP_FixAreaIcon(unsigned char Handle,
+                     unsigned char IconId,//图标ID号
                      const struct _RpFixAreaDesc *pDesc);
 
+//-----------------------固定区域更新某个指定参数------------------------------
+//用于主动更新
+void RP_FixAreaPara(unsigned char Handle,
+                     unsigned char ParaId,//图标ID号
+                     const struct _RpFixAreaDesc *pDesc);
 
 /********************************************************************************
                            回调函数

@@ -11,47 +11,42 @@
 #include "Fonts.h"
 #include <string.h>
 
-/***********************************************************************
-                        固定区域绘图相关-含接口函数与回调函数
-***********************************************************************/
-
-//-------------------------固定区域图标绘图-----------------------------
+//-----------------------指定位置图标绘图-----------------------------
 //更新某个具体图标
-void RP_PaintFixAreaIcon(unsigned char Handle,
-                         unsigned char IconAryId)
+void RP_PaintIcon(unsigned char Handle,const struct _RpIconDesc *pDesc,
+                  unsigned short x, unsigned short y)//相对x,y
 {
-  const struct _RpIconDesc *pDesc = RP_cbGetIconDesc(Handle, IconAryId);
-  if(pDesc == NULL) return; //未找到或出错
-  unsigned char IconId = pDesc->Info & RP_ICON_ID_MASK;
-  const unsigned char *ePic = RP_cbGetIcon(Handle,IconId);  
+  if(pDesc == NULL) return; //异常
+  const unsigned char *ePic = RP_cbGetIcon(Handle,
+                                            pDesc->Info & RP_ICON_ID_MASK);  
   if(ePic == RI_NULL) return;//异常未找到
   //找到x,y及调色板信息
   //设置调色板,已提前预置背景色
+  unsigned char IconId = pDesc->Info & RP_ICON_ID_MASK;
   Plot_SetPenColor(RP_cbGetIconFg(Handle,IconId));
   ePic_ePicBuf(ePic, RP_cbGetIconSize(Handle,IconId));//初始化ePic
-  unsigned short x = pDesc->xl;
+  x += pDesc->xl;
   if(pDesc->Info & RP_ICON_X9) x+= 256;
-  unsigned short y = pDesc->yl;
+  y += pDesc->yl;
   if(pDesc->Info & RP_ICON_Y9) x+= 256;  
   ePic_Plot(x,y);//绘图
 }
 
-//-------------------------固定区域参数绘图-----------------------------
-//更新某个具体图标
-void RP_PaintFixAreaPara(unsigned char Handle,
-                         unsigned char ParaAryId)
+//----------------------指定位置参数绘图-----------------------------
+//更新某个具体参数
+void RP_PaintPara(unsigned char Handle,const struct _RpParaDesc *pDesc,
+                  unsigned short x, unsigned short y)//相对x,y
 {
-  const struct _RpParaDesc *pDesc = RP_cbGetParaDesc(Handle, ParaAryId);
-  if(pDesc == NULL) return; //未找到或出错
-  unsigned char ParaId = pDesc->Info & RP_PARA_ID_MASK;
+  if(pDesc == NULL) return; //异常
+  unsigned char ParaId = pDesc->Info & RP_PARA_ID_MASK;  
   const char *pSring = RP_cbGetString(Handle,ParaId);  
   if(pSring == NULL) return;//异常未找到
   //找到x,y及调色板信息
   //设置调色板,已提前预置背景色
   Plot_SetPenColor(RP_cbGetParaFg(Handle,ParaId));
-  unsigned short x = pDesc->xl;
+  x += pDesc->xl;
   if(pDesc->Info & RP_PARA_X9) x+= 256;
-  unsigned short y = pDesc->yl;
+  y += pDesc->yl;
   if(pDesc->Info & RP_PARA_Y9) x+= 256;  
 
   //仅支持半角字体选择
@@ -67,26 +62,71 @@ void RP_PaintFixAreaPara(unsigned char Handle,
 //----------------------------固定区域绘图------------------------------
 //绘制整个区域或局部
 void RP_FixArea(unsigned char Handle,
-                     unsigned char PlotMask,//绘制区域7b所有,0-6b变量0x7f所有
-                     const struct _RpFixAreaDesc *pDesc)
+                 unsigned char PlotMask,//0b所有，1b图标,2b参数
+                 const struct _RpFixAreaDesc *pDesc)
 {
-  Plot_SetBrushColor(pDesc->cBg);  
+  unsigned short x = pDesc->Rect.x;
+  unsigned short y = pDesc->Rect.y;  
+  
+  Plot_SetBrushColor(pDesc->cBg);   
   if(PlotMask & 0x01){//绘制背景
-    Plot_FullRect(pDesc->Rect.x, pDesc->Rect.y,
-                  pDesc->Rect.w,pDesc->Rect.h);
+    Plot_FullRect(x, y,pDesc->Rect.w,pDesc->Rect.h);
+    PlotMask = 0xff;//需所有
   }
   if(PlotMask & 0x02){//绘制所有图标
     unsigned char Base = pDesc->IconBase;
     unsigned char Count = pDesc->IconCount + Base;
     for(; Base < Count; Base++){
-      RP_PaintFixAreaIcon(Handle, Base);
+      RP_PaintIcon(Handle, RP_cbGetIconDesc(Handle, Base), x, y);
     }
   }
   if(PlotMask & 0x04){//绘制所有参数
     unsigned char Base = pDesc->ParaBase;
     unsigned char Count = pDesc->ParaCount + Base;
     for(; Base < Count; Base++){
-      RP_PaintFixAreaPara(Handle, Base);
+       RP_PaintPara(Handle, RP_cbGetParaDesc(Handle, Base), x, y);
+    }
+  }
+}
+
+//-----------------------固定区域更新某个指定图标------------------------------
+//用于主动更新
+void RP_FixAreaIcon(unsigned char Handle,
+                     unsigned char IconId,//图标ID号
+                     const struct _RpFixAreaDesc *pDesc)
+{
+  unsigned short x = pDesc->Rect.x;
+  unsigned short y = pDesc->Rect.y;  
+  
+  //查找图标Desc
+  unsigned char Base = pDesc->IconBase;
+  unsigned char Count = pDesc->IconCount + Base;
+  for(; Base < Count; Base++){
+    const struct _RpIconDesc *pDesc = RP_cbGetIconDesc(Handle, Base);
+    if((pDesc != NULL) && ((pDesc->Info & RP_ICON_ID_MASK) == IconId)){
+      RP_PaintIcon(Handle, pDesc, x, y); //匹配了，绘图
+      return;
+    }
+  }
+}
+
+//-----------------------固定区域更新某个指定参数------------------------------
+//用于主动更新
+void RP_FixAreaPara(unsigned char Handle,
+                     unsigned char ParaId,//图标ID号
+                     const struct _RpFixAreaDesc *pDesc)
+{
+  unsigned short x = pDesc->Rect.x;
+  unsigned short y = pDesc->Rect.y;  
+  
+  //查找图标Desc
+  unsigned char Base = pDesc->ParaBase;
+  unsigned char Count = pDesc->ParaCount + Base;
+  for(; Base < Count; Base++){
+    const struct _RpParaDesc *pDesc = RP_cbGetParaDesc(Handle, Base);
+    if((pDesc != NULL) && ((pDesc->Info & RP_ICON_ID_MASK) == ParaId)){
+      RP_PaintPara(Handle, pDesc, x, y); //匹配了，绘图
+      return;
     }
   }
 }
