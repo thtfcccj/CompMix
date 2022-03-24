@@ -11,6 +11,20 @@
 #endif
 #include "Color.h"
 
+/*****************************************************************************
+                              句柄Handle定义与说明
+*****************************************************************************/
+//Handle作为唯一的ID号与应用层交互，按位分为以下几部分：
+
+//实时刷新调用标志,不需要实时部分,在可取图片与字符资源时，可返回异常以停止刷新
+#define RP_HANDLE_REAL_REFRESH 0x80000000
+//主类，固定分配用于大类识别
+#define RP_HANDLE_MTYPE_MASK   0x7f000000
+//子类，在RP_AryArea回调获得(某类设备)
+#define RP_HANDLE_STYPE_MASK   0x00ff0000
+//阵列ID号(某个设备)
+#define RP_HANDLE_ARY_MASK     0x00ffffff   
+
 /******************************************************************************
 
                              资源描述结构
@@ -46,7 +60,7 @@ struct _RpFixAreaDesc{     //->此结构在资源定中的前缀标识"RPF_"
 
 //----------------------------阵列界面中的项区域描述----------------------------
 //当主界内有多个相同阵列区域(如状态，菜单)的项时，用于描述此项同的结构以绘制该项
-struct _RpItemAreaDesc{    //->此结构在资源定中的前缀标识  "RPX_"
+struct _RpAryAreaDesc{    //->此结构在资源定中的前缀标识  "RPX_"
   struct _RpRect Rect;     //位置范围信息，x,y为在主界面中的相对位置
   unsigned char  RowCount; //在主界面中，横向阵列排列个数
   unsigned char  ColCount; //在主界面中，纵向阵列排列个数
@@ -59,7 +73,7 @@ struct _RpItemAreaDesc{    //->此结构在资源定中的前缀标识  "RPX_"
   Color_t cFocus;           //被选中时边界颜色  
 };
 //位信息定义为：
-#define RP_ITEM_MENU               0x80  //阵列区为菜单，默认为界面元素
+#define RP_ITEM_REAL_REFRESH       0x80  //项内有需要实时刷新的数据
 #define RP_ITEM_DIS_FOCUS          0x40  //无焦点区，即不响应点击
 #define RP_ITEM_ICON_BG_VALID      0x20  //背景图图片有效,即仅为背景色绘图
 #define RP_ITEM_ICON_BG_FOCUS_EN   0x10  //背景图片焦点有效，即选中时使用图片
@@ -109,70 +123,47 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
 //表空间分配以2字节对齐，以对齐颜色等
 
 /*****************************************************************************
-                        绘图函数
+                              通用绘图函数
 *****************************************************************************/
 
 //-------------------------指定位置图标绘图-----------------------------
 //更新某个具体图标
-void RP_PaintIcon(unsigned char Handle,const struct _RpIconDesc *pDesc,
+void RP_PaintIcon(unsigned long Handle,const struct _RpIconDesc *pDesc,
                   unsigned short x, unsigned short y);//相对x,y
 
 //-------------------------指定位置参数绘图-----------------------------
 //更新某个具体参数
-void RP_PaintPara(unsigned char Handle,const struct _RpParaDesc *pDesc,
+void RP_PaintPara(unsigned long Handle,const struct _RpParaDesc *pDesc,
                   unsigned short x, unsigned short y);//相对x,y
-
-//----------------------------固定区域绘图------------------------------
-//绘制整个区域或局部
-void RP_FixArea(unsigned char Handle,
-                unsigned char PlotMask,//0b所有，1b图标,2b参数
-                const struct _RpFixAreaDesc *pDesc);
-
-//-----------------------固定区域更新某个指定图标------------------------------
-//用于主动更新
-void RP_FixAreaIcon(unsigned char Handle,
-                     unsigned char IconId,//图标ID号
-                     const struct _RpFixAreaDesc *pDesc);
-
-//-----------------------固定区域更新某个指定参数------------------------------
-//用于主动更新
-void RP_FixAreaPara(unsigned char Handle,
-                     unsigned char ParaId,//图标ID号
-                     const struct _RpFixAreaDesc *pDesc);
 
 /********************************************************************************
                            回调函数
 ********************************************************************************/
 
-//----------------------------由图标AryID找图信息------------------------------
-const struct _RpIconDesc *RP_cbGetIconDesc(unsigned char Handle,
-                                           unsigned char IconAryId);
-
 //----------------------------由图标ID找到图数据------------------------------
-const unsigned char *RP_cbGetIcon(unsigned char Handle,
+const unsigned char *RP_cbGetIcon(unsigned long Handle,
                                    unsigned char IconId);
 
 //----------------------------由图标ID找到图数据大小----------------------------
-unsigned long RP_cbGetIconSize(unsigned char Handle,
+unsigned long RP_cbGetIconSize(unsigned long Handle,
                                unsigned char IconId);
 
 //----------------------------由图标ID找图标前景色------------------------------
-//由图标ID找到图
-Color_t RP_cbGetIconFg(unsigned char Handle,
+//用于wbm格式时着色
+Color_t RP_cbGetIconFg(unsigned long Handle,
                        unsigned char IconId);
 
-
 //----------------------------由参数AryID找参数信息----------------------------
-const struct _RpParaDesc *RP_cbGetParaDesc(unsigned char Handle,
+const struct _RpParaDesc *RP_cbGetParaDesc(unsigned long Handle,
                                             unsigned char ParaAryId);
 
 //----------------------------由参数AryID找字符串------------------------------
-const char * RP_cbGetString(unsigned char Handle,
+const char * RP_cbGetString(unsigned long Handle,
                              unsigned char ParaAryId);
 
 //----------------------------由参数ID找图标前景色------------------------------
 //由图标ID找到图
-Color_t RP_cbGetParaFg(unsigned char Handle,
+Color_t RP_cbGetParaFg(unsigned long Handle,
                        unsigned char ParaId);
 
 
