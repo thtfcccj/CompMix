@@ -36,10 +36,11 @@ static void _Refresh(struct _RP_AryArea *pArea,
                       signed char IsRefreshFocus)//刷新焦点，否则为PlotMask
 {
   unsigned char PlotMask;
-  if(IsRefreshFocus) PlotMask = 0x07; //刷新焦点位置
+  if(IsRefreshFocus) PlotMask = 0x0E; //刷新焦点位置
   else{
-    PlotMask= pArea->PlotMask;
+    PlotMask = pArea->PlotMask;
     pArea->PlotMask = 0;
+    PlotMask &= ~0x10;//防止异常置位
   }
   const struct _RpMainAreaDesc *pMainDesc = pArea->pMainDesc; //整体描述
   unsigned short x = pMainDesc->Rect.x;
@@ -47,7 +48,7 @@ static void _Refresh(struct _RP_AryArea *pArea,
   if(PlotMask & 0x80){//绘制整体背景
     Plot_SetBrushColor(pMainDesc->cBg);
     Plot_FullRect(x, y,pMainDesc->Rect.w,pMainDesc->Rect.h);
-    PlotMask = 0xff;//需所有
+    PlotMask = 0x0f;//需所有
   }
   const struct _RpAryAreaDesc *pAryDesc = pArea->pAryDesc;   //项描述
   unsigned char RowCount = pAryDesc->RowCount;
@@ -66,11 +67,12 @@ static void _Refresh(struct _RP_AryArea *pArea,
   pArea->FDesc.Rect.w = pMainDesc->Rect.w;
   pArea->FDesc.Rect.h = pMainDesc->Rect.w;
   pArea->FDesc.cBg = pAryDesc->cBg;
+  pArea->FDesc.IconBgId = pAryDesc->IconBgId;
   //初始化RP_FixArea需要的PlotMask与Handle;
   unsigned long Handle = pArea->Handle;
-  if(PlotMask == 0){
-    Handle |= RP_HANDLE_REAL_REFRESH;//仅刷新实时部分
-    PlotMask = 0x06; //仅更新项数据与项图
+  if(PlotMask == 0){//仅刷新实时部分时
+    Handle |= RP_HANDLE_REAL_REFRESH;
+    PlotMask = 0x0C; //仅更新项数据与项图
   }
   unsigned short AryId = pArea->AryStart;
   unsigned short FocusAryId; //被选Aryid
@@ -84,6 +86,7 @@ static void _Refresh(struct _RP_AryArea *pArea,
     Pos = pArea->Focus;
     //边框式焦点时
     if(!(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN)){
+      Plot_SetPenColor(pAryDesc->cFocus);
       Plot_Rect(x + pw * (Pos % RowCount) - 1, 
                 y + ph * (Pos / RowCount) - 1,
                 pArea->FDesc.Rect.w + 2,
@@ -92,30 +95,29 @@ static void _Refresh(struct _RP_AryArea *pArea,
       //更新本页上次的焦点区域数据
       Pos = pArea->PrvFocus;
       pArea->PrvFocus = pArea->Focus; //更新了
+      Plot_SetPenColor(pAryDesc->cBg); //用背景色清除
       Plot_Rect(x + pw * (Pos % RowCount) - 1, 
                 y + ph * (Pos / RowCount) - 1,
                 pArea->FDesc.Rect.w + 2,
                 pArea->FDesc.Rect.h + 2);      
       return; //更新完在
     }
-    //更新本页焦点区域数据
-    RP_AryArea_cbGetSTypeInfo(Handle, FocusAryId,
-                              FocusAryId, &pArea->STypeInfo);
+    //更新本页焦点区域及数据
+    RP_AryArea_cbGetSTypeInfo(Handle, FocusAryId, &pArea->STypeInfo);
     _PotItem(pArea, Handle | FocusAryId,
              x + pw * (Pos % RowCount),
              y + ph * (Pos / RowCount),
-             PlotMask);
+             0x0F | 0x10); //0x10: 第二背景为选中
     if(Pos == pArea->PrvFocus) return; //不更新上一个
     //更新本页上次的焦点区域数据
     Pos = pArea->PrvFocus;
     pArea->PrvFocus = pArea->Focus; //更新了    
     AryId += Pos;   //上次焦点
-    RP_AryArea_cbGetSTypeInfo(Handle, AryId,
-                              FocusAryId, &pArea->STypeInfo);
+    RP_AryArea_cbGetSTypeInfo(Handle, AryId, &pArea->STypeInfo);
     _PotItem(pArea, Handle | AryId,
              x + pw * (Pos % RowCount),
              y + ph * (Pos / RowCount),
-             PlotMask);    
+             0x0F);  //未选中
     return;
   }
   //========================扫描更新内容=========================
@@ -124,7 +126,6 @@ static void _Refresh(struct _RP_AryArea *pArea,
   Pos = 0; //从头开始
   for(; Pos < Count; Pos++, AryId++){
     signed char Resumme = RP_AryArea_cbGetSTypeInfo(Handle, AryId,
-                                                    FocusAryId,
                                                     &pArea->STypeInfo);
     if(Resumme == 0){//结束了
       pArea->AryCount = AryId;//动态更新
@@ -138,7 +139,10 @@ static void _Refresh(struct _RP_AryArea *pArea,
     pArea->FDesc.ParaBase = pArea->STypeInfo.ParaBase;
     pArea->FDesc.ParaCount = pArea->STypeInfo.ParaCount;
     //调用固定区域绘图
-    RP_FixArea(Handle | AryId, PlotMask,&pArea->FDesc);
+    unsigned char CurPlotMask = PlotMask;
+    if((AryId == FocusAryId) && (PlotMask & 0x03))
+      CurPlotMask |= 0x10;//绘制背景或所有时,第二背景为选中
+    RP_FixArea(Handle | AryId, CurPlotMask, &pArea->FDesc);
   }//end for
   if(Pos >= Count) return;
   if(PlotMask == 0xff) return;//已整屏清屏了
@@ -146,10 +150,10 @@ static void _Refresh(struct _RP_AryArea *pArea,
   for(; Pos < Count; Pos++){
     pArea->FDesc.Rect.x = x + pw * (Pos % RowCount);
     pArea->FDesc.Rect.y = y + ph * (Pos / RowCount);
-    Plot_FullRect(pArea->FDesc.Rect.x, 
-                  pArea->FDesc.Rect.y,
-                  pArea->FDesc.Rect.w,
-                  pArea->FDesc.Rect.h);
+    Plot_FullRect(pArea->FDesc.Rect.x-1, 
+                  pArea->FDesc.Rect.y-1,
+                  pArea->FDesc.Rect.w+2,
+                  pArea->FDesc.Rect.h+2);
   }
 }
 

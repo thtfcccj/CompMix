@@ -55,7 +55,9 @@ struct _RpFixAreaDesc{     //->此结构在资源定中的前缀标识"RPF_"
   unsigned char IconBase;  //图标信息ID查找表起始
   unsigned char IconCount; //图标信息ID查找表个数
   unsigned char ParaBase;  //变量信息ID查找表起始
-  unsigned char ParaCount; //变量信息ID查找表个数  
+  unsigned char ParaCount; //变量信息ID查找表个数
+  unsigned char IconBgId;  //背景图ID,0无，有焦点时首图为未中，第二图为选中
+  unsigned char Reseved;   //保留功能
 };
 
 //----------------------------阵列界面中的项区域描述----------------------------
@@ -64,10 +66,7 @@ struct _RpAryAreaDesc{    //->此结构在资源定中的前缀标识  "RPX_"
   struct _RpRect Rect;     //位置范围信息，x,y为在主界面中的相对位置
   unsigned char  RowCount; //在主界面中，横向阵列排列个数
   unsigned char  ColCount; //在主界面中，纵向阵列排列个数
-  union{//区域阵列信息与菜单：
-    unsigned char IconBgId;  //背景图ID,若有且为焦点，则首图为未中，第二图为选中
-    unsigned char IconBase;  //菜单图ID,若有且为焦点，则首图为未中，第二图为选中
-  };
+  unsigned char  IconBgId; //背景图ID,0无，有焦点时首图为未中，第二图为选中
   unsigned char  BitInfo;  //位信息，见定义
   Color_t cBg;              //此区域的背景色
   Color_t cFocus;           //被选中时边界颜色  
@@ -75,7 +74,6 @@ struct _RpAryAreaDesc{    //->此结构在资源定中的前缀标识  "RPX_"
 //位信息定义为：
 #define RP_ITEM_REAL_REFRESH       0x80  //项内有需要实时刷新的数据
 #define RP_ITEM_DIS_FOCUS          0x40  //无焦点区，即不响应点击
-#define RP_ITEM_ICON_BG_VALID      0x20  //背景图图片有效,即仅为背景色绘图
 #define RP_ITEM_ICON_BG_FOCUS_EN   0x10  //背景图片焦点有效，即选中时使用图片
 #define RP_ITEM_ID_MASK            0x0F  //应用层使用同一函数时，此结构的ID号
 

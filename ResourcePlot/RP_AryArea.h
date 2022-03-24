@@ -101,8 +101,7 @@ void RP_AryArea_Key(struct _RP_AryArea *pArea, unsigned char GuideKey);
 //-------------------由主Handle与阵列ID得到子类型相关信息----------------------
 //返回0结束，后续无Item了，否则需填充pSTypeInfo
 signed char RP_AryArea_cbGetSTypeInfo(unsigned long Handle, 
-                                      unsigned short AryId,
-                                      unsigned short FocusAryId,//被选Aryid,-1无效                            
+                                      unsigned short AryId,                        
                                       struct _RP_AryArea_STypeInfo *pSTypeInfo);
 
 //------------------------------某项被选择------------------------------------

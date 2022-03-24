@@ -17,8 +17,9 @@
 
 //----------------------------固定区域绘图------------------------------
 //绘制整个区域或局部
+//PlotMask: 0b所有，1b背景图, 2b图标, 3b参数, 4b背景图+1
 void RP_FixArea(unsigned long Handle,
-                unsigned char PlotMask,//0b所有，1b图标,2b参数
+                unsigned char PlotMask,
                 const struct _RpFixAreaDesc *pDesc);
 
 //-----------------------固定区域更新某个指定图标------------------------------
