@@ -39,7 +39,7 @@
 
 //---------------------------子类型信息------------------------------
 struct _RP_AryArea_STypeInfo{
-  unsigned char SType;  //子类型即handle中的 RP_HANDLE_STYPE_MASK位
+  unsigned long SType;  //子类型,即handle中的RP_HANDLE_STYPE_MASK位
   //描述主handle下，子类型图标与变量查找表信息：
   unsigned char IconBase;  //图标信息ID查找表起始
   unsigned char IconCount; //图标信息ID查找表个数
@@ -49,6 +49,7 @@ struct _RP_AryArea_STypeInfo{
 
 //---------------------------主结构----------------------------------
 struct _RP_AryArea{
+  
   const struct _RpMainAreaDesc *pMainDesc; //整体描述
   const struct _RpAryAreaDesc *pAryDesc;   //项描述 
   unsigned long Handle;                   //主句柄 

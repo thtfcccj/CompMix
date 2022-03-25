@@ -104,7 +104,7 @@ static void _Refresh(struct _RP_AryArea *pArea,
     }
     //更新本页焦点区域及数据
     RP_AryArea_cbGetSTypeInfo(Handle, FocusAryId, &pArea->STypeInfo);
-    _PotItem(pArea, Handle | FocusAryId,
+    _PotItem(pArea, Handle | FocusAryId | pArea->STypeInfo.SType,
              x + pw * (Pos % RowCount),
              y + ph * (Pos / RowCount),
              0x0F | 0x10); //0x10: 第二背景为选中
@@ -114,7 +114,7 @@ static void _Refresh(struct _RP_AryArea *pArea,
     pArea->PrvFocus = pArea->Focus; //更新了    
     AryId += Pos;   //上次焦点
     RP_AryArea_cbGetSTypeInfo(Handle, AryId, &pArea->STypeInfo);
-    _PotItem(pArea, Handle | AryId,
+    _PotItem(pArea, Handle | AryId | pArea->STypeInfo.SType,
              x + pw * (Pos % RowCount),
              y + ph * (Pos / RowCount),
              0x0F);  //未选中
@@ -142,7 +142,8 @@ static void _Refresh(struct _RP_AryArea *pArea,
     unsigned char CurPlotMask = PlotMask;
     if((AryId == FocusAryId) && (PlotMask & 0x03))
       CurPlotMask |= 0x10;//绘制背景或所有时,第二背景为选中
-    RP_FixArea(Handle | AryId, CurPlotMask, &pArea->FDesc);
+    RP_FixArea(Handle | AryId | pArea->STypeInfo.SType, 
+               CurPlotMask, &pArea->FDesc);
   }//end for
   if(Pos >= Count) return;
   if(PlotMask == 0xff) return;//已整屏清屏了
