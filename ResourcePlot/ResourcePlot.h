@@ -3,6 +3,7 @@
                          资源信息绘图模块
 
 为简化相关操作，本资源前缀以Rp(Resource Plot)打头
+//图标与变量信息可重叠以实现组合功能，其阵列越大越靠前
 ******************************************************************************/
 #ifndef __RESOURCE_PLOT_H 
 #define __RESOURCE_PLOT_H 
@@ -10,29 +11,23 @@
   #include "Preinclude.h"
 #endif
 #include "Color.h"
+#include "RpHandle.h"
 
 /*****************************************************************************
-                              句柄Handle定义与说明
+                         图标信息与参数信息的相对位置倍率
 *****************************************************************************/
-//Handle作为唯一的ID号与应用层交互，按位分为以下几部分：
+//图标信息与参数信息的相对位置为提高利用率，默认仅支持到512像素
+//当显示屏超过512时，可通过系统倍率定义方式实现扩容:
+#ifndef RP_X_MUTI
+  #define RP_X_MUTI    1
+#endif
 
-//实时刷新调用标志,不需要实时部分,在可取图片与字符资源时，可返回异常以停止刷新
-#define RP_HANDLE_REAL_REFRESH 0x80000000
-
-//主类，固定分配用于大类识别
-#define RP_HANDLE_MTYPE_MASK   0x7f000000
-//子类，在RP_AryArea回调获得(某类设备)
-#define RP_HANDLE_STYPE_MASK   0x00ff0000
-
-#define RP_HANDLE_TYPE_MASK   (RP_HANDLE_MTYPE_MASK | RP_HANDLE_STYPE_MASK)
-
-//阵列ID号(某个设备)
-#define RP_HANDLE_ARY_MASK     0x00ffffff   
+#ifndef RP_Y_MUTI
+  #define RP_Y_MUTI    1
+#endif
 
 /******************************************************************************
-
                              资源描述结构
-
 ******************************************************************************/
 
 //---------------------------------矩形区域结构-------------------------------
@@ -85,13 +80,13 @@ struct _RpAryAreaDesc{    //->此结构在资源定中的前缀标识  "RPX_"
 //如状态栏中的时间图标，使用此结构时，要求所父区域宽度与高度,512个像素
 struct _RpIconDesc{        //->此结构在资源定中的前缀标识  "RPI_ARY"
   unsigned char Info;     //信息位，见定义
-  unsigned char xl;       //位置x轴低8位
-  unsigned char yl;       //位置y轴低8位 
+  unsigned char xl;       //相对位置x轴低8位
+  unsigned char yl;       //相对位置y轴低8位 
 };
 #define SIZEOF_RP_ICON_DESC   3//实际占位
 
 //信息位定义为：
-#define RP_ICON_ID_MASK      0x3F  //b0~b5图标ID
+#define RP_ICON_ID_MASK      0x3F  //b0~b5图标ID(同一界面最大支持64个图标)
 #define RP_ICON_X9           0x40  //b6=1时x轴+256
 #define RP_ICON_Y9           0x80  //b7=1时y轴+256
 
@@ -103,17 +98,33 @@ struct _RpIconDesc{        //->此结构在资源定中的前缀标识  "RPI_ARY"
 struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
   unsigned char Info;     //信息位，见定义
   unsigned char xl;       //相对位置x轴低8位
-  unsigned char yl;       //位置y轴低8位
+  unsigned char yl;       //相对位置y轴低8位
   unsigned char Para;     //其它参数，见定义 
 };
 #define SIZEOF_RP_PARA_DESC   4//实际占位
 
 //信息位定义为：
-#define RP_PARA_ID_MASK      0x3F  //b0~b5参数ID
+#define RP_PARA_ID_MASK      0x3F  //b0~b5参数ID(同一界面最大支持64个参数)
 #define RP_PARA_X9           0x40  //b6=1时x轴+256
 #define RP_PARA_Y9           0x80  //b7=1时y轴+256
+
 //其它参数,定义为：
-#define RP_PARA_FONT_MASK    0x0F  //所示使用的字体ID号
+#define RP_PARA_TYPE_PARA       0x0F  //由参数类型决定的参数
+#define RP_PARA_EN_FUN          0x10  //由参数类型决定的相关使能位
+#define RP_PARA_TYPE_MASK       0xE0  //参数类型，定义为：
+#define RP_PARA_TYPE_SHIFT      4
+
+//字符串型：
+#define RP_PARA_TYPE_STRING  0     //低5b参数为:
+  #define RP_PARA_FONT_MUTI2   0x10  //字符串时，字体放大1倍显示
+  #define RP_PARA_FONT_MASK    0x0F  //字符串时，使用的字体ID号
+  //字符串型无附加结构：通过回调获得：字符串与字符串颜色。
+
+//工具类：
+#define RP_PARA_TYPE_TOOLS   0xE0   //工具类，TYPE_PARA为工具类型:
+#include "RpTools.h"    //每个工具有其独立的描述参数,在此定义
+
+
 
 
 //注1：系统将相同类型的绘图参数函数组成阵列，从中找出该函数进行给制。
@@ -123,6 +134,19 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
 //资源定中的其它前缀标识定义为
 //颜色阵列：统一以“C_”开头，后跟用途等信息
 //表空间分配以2字节对齐，以对齐颜色等
+
+
+/******************************************************************************
+                   非字符型变量时，从用户空间获取的信息定义
+******************************************************************************/
+//资源描述结构：
+union _RP_NsDesc{
+  union _RpToolsDesc Tools;//RP_PARA_TYPE_TOOLS： 工具类时
+};
+//参数结构:
+union _RP_NsPara{
+  union _RpToolsPara Tools;//RP_PARA_TYPE_TOOLS： 工具类时
+};
 
 /*****************************************************************************
                               通用绘图函数
@@ -163,10 +187,20 @@ const struct _RpParaDesc *RP_cbGetParaDesc(unsigned long Handle,
 const char * RP_cbGetString(unsigned long Handle,
                              unsigned char ParaAryId);
 
-//----------------------------由参数ID找图标前景色------------------------------
-//由图标ID找到图
-Color_t RP_cbGetParaFg(unsigned long Handle,
-                       unsigned char ParaId);
+//----------------------------由参数ID找字符串前景色--------------------------
+Color_t RP_cbGetStringFg(unsigned long Handle,
+                        unsigned char ParaId);
+
+//------------------------由参数ID找到非字符串型描述信息----------------------
+//即提向资源文件常量区的指针
+const union _RP_NsDesc *RP_pcbGetNsDesc(unsigned long Handle,
+                                        unsigned char Para,//_RpParaDesc->Para
+                                        unsigned char ParaId);
+
+//----------------------由参数ID找到非字符串型参数信息------------------------
+const union _RP_NsPara *RP_pcbGetNsPara(unsigned long Handle,
+                                        unsigned char Para,//_RpParaDesc->Para
+                                        unsigned char ParaId);
 
 
 #endif  //#ifndef __RESOURCE_PLOT_H 
