@@ -12,6 +12,13 @@
                           相关函数实现
 ************************************************************************/
 
+//----------------------------填充查找表---------------------------------
+#ifdef SUPPORT_DYNA_ID_FILTER_LSB
+  #define _FullLUT(d,p)  pLsbS2Full(d,p)
+#else
+  #define _FullLUT(d,p)  pMsbS2Full(d,p)
+#endif
+
 //----------------------------动态Id填充处理-------------------------
 //PosOrId: b14~15!=0: 要先根据阵列ID时,查找位置，找到后返回该位置(pLUT首位)和对应页查找表 
 //MSB双字节方式填充查找表,查找表为NULL时返回-1表示未找到，NULL找到
@@ -47,7 +54,7 @@ unsigned char* DynaIdFilter_Full(struct _DynaIdFilter *pFilter,//主结构
       RdPos = 0;
     }
     else CurUserPos = RdPos;//不在首页，直接对应(CurLocalPos也定位了)
-    pLUT = pMsbS2Full(RdPos, pLUT); //首位填充查找表实际阵列值
+    pLUT = _FullLUT(RdPos, pLUT); //首位填充查找表实际阵列值
     goto _ToRdPos; //直接读取
   }
   else RdPos = PosOrId;//为读取位置
@@ -107,7 +114,7 @@ _MsbSFull: //找到起始位置了，填充
   
   for(; CurLocalPos < TblLen; CurLocalPos++){
     if(!funFilter(CurLocalPos, Para)) continue; //不满足条件
-    pLUT = pMsbS2Full(funFilter(0x8000 | CurLocalPos, Para), pLUT); //填充查找表实际阵列值
+    pLUT = _FullLUT(funFilter(0x8000 | CurLocalPos, Para), pLUT); //填充查找表实际阵列值
     RdPos++;  //用户位置下一个    
     if(RdPos >= EndRdPos) break; //填充完了
   }

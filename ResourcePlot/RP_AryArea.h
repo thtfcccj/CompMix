@@ -85,7 +85,7 @@ void RP_AryArea_Task(struct _RP_AryArea *pArea);
 
 //-------------------------------刷新所有函数----------------------------
 //用于立即重建所有数据
-#define RP_AryArea_RefreshAll(area) do{(area)->RefreshMask = 0xff; }while(0)
+#define RP_AryArea_RefreshAll(area) do{(area)->PlotMask = 0xff; }while(0)
 
 //-------------------------------刷新普通数据函数----------------------------
 //用于立即重建普通数据
