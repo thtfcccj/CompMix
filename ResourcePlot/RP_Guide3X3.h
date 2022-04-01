@@ -29,7 +29,7 @@
 //                  □ ■ □  除中部功能外，其它功能均可禁止。
 //                  □ □ □ 
 //  位置：从左到右，从上到下排列, 每个图标有选中与不选中两个
-//  IconId = 位置 * 2 + IconBase;
+//  
 
 /***********************************************************************
                            相关配置
@@ -51,9 +51,11 @@
 struct _RP_Guide3X3_Desc{
   struct _RpRect Rect;      //所在区域
   unsigned long Handle;    //用于查找绘图资源及回调
+  unsigned short Cfg;      //相关配置，见定义  
   unsigned char IconBase;  //资源图标起始
-  unsigned short Cfg;      //相关配置，见定义
+  unsigned char Style;     //选中时显示样式，见定义
   Color_t Bg;               //背景色
+  Color_t Fg[2];            //见显示样式对应说明
 };
 
 //相关配置定义为
@@ -62,6 +64,22 @@ struct _RP_Guide3X3_Desc{
 #define RP_GUIDE3X3_EN_DYNC    0x2000 //开启焦区图标动画功能
 
 #define RP_GUIDE3X3_EN_MASK    0x01FF //允许对应图标显示及选择，否则不显示
+
+//选中时显示样式定义为：
+//双图标模式: 即选中为第二图标, 即：IconId = 位置 * 2 + IconBase,Fg[0]Fg[1]无效
+#define RP_GUIDE3X3_STYLE_PIC2    0  
+//替换模式: 将图标中的调色板Fg[0]色，替换为调色板Fg[1]色(需底层调色板支持,暂未实现)
+#define RP_GUIDE3X3_STYLE_REPLACE 1
+//描边模式: 即四周增加Fg[0]个像素Fg[1]色框
+#define RP_GUIDE3X3_STYLE_RECT    2 
+//吸附模式: 图标向左上移动2个像素，同时右侧与下侧增加Fg[0]Fg[1]色共两个像素指定阴影
+#define RP_GUIDE3X3_STYLE_POP     3 
+//按下模式: 图标向右下移动2个像素，同时左侧与上侧增加Fg[0]Fg[1]色共两个像素指定阴影
+#define RP_GUIDE3X3_STYLE_PUSH    4
+//加色模式: 图标的每个像素RGB分别减去Fg[0]色(需底层绘图支持,暂未实现)
+#define RP_GUIDE3X3_STYLE_INC     5
+//减色模式: 图标的每个像素RGB分别加上Fg[0]色(需底层绘图支持,暂未实现)
+#define RP_GUIDE3X3_STYLE_DEC     6
 
 //---------------------------主结构----------------------------------
 struct _RP_Guide3X3{
