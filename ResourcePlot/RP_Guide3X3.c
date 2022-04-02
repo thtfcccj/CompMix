@@ -14,14 +14,15 @@
 ***********************************************************************/
 
 //-----------------------------刷新界面----------------------------
-static void _Refresh(const struct _RP_Guide3X3 *pGuide,
+static void _Refresh(struct _RP_Guide3X3 *pGuide,
                       unsigned short Mask)
 {
   unsigned char Focus = pGuide->Focus;
   for(unsigned char Pos = 0; Pos < 9; Pos++){
     if(!(Mask & (1 << Pos))) continue;//不刷新
     unsigned char IconId;
-    if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_PIC2){//双图标模式时
+    #ifdef SUPPORT_RP_GUIDE3X3_PIC2//双图标模式时
+    if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_PIC2){
       if(Pos == Focus){//焦点时
         if(Mask & 0x0800) IconId = 0;//焦点强制显示不选择中，用于动画
         else IconId = 1; //选中状态
@@ -29,7 +30,9 @@ static void _Refresh(const struct _RP_Guide3X3 *pGuide,
       else IconId = 0;//非焦点不选中
       IconId += pGuide->Desc.IconBase + Pos * 2;
     }
-    else IconId = pGuide->Desc.IconBase + Pos;// 其它模式直接对应
+    else
+    #endif //SUPPORT_RP_GUIDE3X3_PIC2
+      IconId = pGuide->Desc.IconBase + Pos;// 其它模式直接对应
     
     unsigned long Handle = pGuide->Desc.Handle;
     //由图标ID找到图数据
@@ -49,35 +52,48 @@ static void _Refresh(const struct _RP_Guide3X3 *pGuide,
     unsigned short y = (ph - ePicBuf.Header.h) / 2;
     y  += (Pos / 3) * ph + pGuide->Desc.Rect.y;
     if(Pos == Focus){//焦点时
-      //吸附模式: 图标向左上移动2个像素
+      #ifdef SUPPORT_RP_GUIDE3X3_POP//吸附模式: 图标向左上移动2个像素
       if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_POP){
         x -= 2;
         y -= 2;
       }
-      //按下模式: 图标向右下移动2个像素
-      else if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_PUSH){
+      #endif
+      #ifdef SUPPORT_RP_GUIDE3X3_PUSH//按下模式: 图标向右下移动2个像素
+      if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_PUSH){
         x += 2;
         y += 2;
       }
+      #endif
     }//end 焦点时
     //设置图像调色板用于ePic模式
     Plot_SetPenColor(RP_Guide3X3_cbGetIconFg(Handle,IconId));
     ePic_Plot(x,y);//绘图 
     
-    if(Pos != Focus) continue;
+    if((Pos != pGuide->Focus) && (Pos != pGuide->PrvFocus)) continue;
     
     //=====================焦点时部分样式后期处理=========================
-    //描边模式: 即四周增加Fg[0]个像素Fg[1]色框
+    #ifdef SUPPORT_RP_GUIDE3X3_RECT //描边模式:
     if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_RECT){
-      Plot_SetPenColor(pGuide->Desc.Fg[1]);
+      if(Pos == pGuide->Focus) // 四周增加Fg[0]个像素Fg[1]色框
+        Plot_SetPenColor(pGuide->Desc.Fg[1]);
+      else// 清除上次焦点时色框
+        Plot_SetPenColor(pGuide->Desc.Bg);
       Plot_Rect(x - 1,y - 1, ePicBuf.Header.w + 2, ePicBuf.Header.h + 2);
       if(pGuide->Desc.Fg[0])//双色框
         Plot_Rect(x - 2,y - 2, ePicBuf.Header.w + 4, ePicBuf.Header.h + 4);
       continue;
     }
+    #endif //SUPPORT_RP_GUIDE3X3_RECT
     
-    //吸附模式: 图标向左上移动2个像素，同时右侧与下侧增加共两个像素指定阴影
+    #ifdef SUPPORT_RP_GUIDE3X3_POP//吸附模式:
     if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_POP){
+      //取消焦点时，需去除左侧与上侧未被擦除的图标痕迹
+      if(Pos == pGuide->PrvFocus){
+        Plot_FullRect(x - 2, y - 2, 2, ePicBuf.Header.h);
+        Plot_FullRect(x - 2, y - 2, ePicBuf.Header.w,2);
+        continue;
+      }
+      //焦点时,右侧与下侧增加Fg[0]Fg[1]色共两个像素指定阴影
       unsigned short Offset = x + ePicBuf.Header.w;
       Plot_SetPenColor(pGuide->Desc.Fg[0]);
       Plot_LineV(Offset, y+1,ePicBuf.Header.h);
@@ -90,8 +106,18 @@ static void _Refresh(const struct _RP_Guide3X3 *pGuide,
       Plot_LineH(x + 2, Offset + 1, ePicBuf.Header.w);
       continue;
     }
-    //按下模式: 图标向右下移动2个像素，同时左侧与上侧增加共两个像素指定阴影
+    #endif //SUPPORT_RP_GUIDE3X3_POP
+
+     
+    #ifdef SUPPORT_RP_GUIDE3X3_PUSH //按下模式:     
     if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_PUSH){
+      //取消焦点时，需去除右侧与下侧未被擦除的图标痕迹
+      if(Pos == pGuide->PrvFocus){
+        Plot_FullRect(x + ePicBuf.Header.w, y + 2, 2, ePicBuf.Header.h);
+        Plot_FullRect(x + 2, y + ePicBuf.Header.h, ePicBuf.Header.w,2);
+        continue;
+      }
+      //图标向右下移动2个像素，同时左侧与上侧增加共两个像素指定阴影
       Plot_SetPenColor(pGuide->Desc.Fg[0]);
       Plot_LineV(x - 1, y - 1,ePicBuf.Header.h);
       Plot_SetPenColor(pGuide->Desc.Fg[1]);
@@ -101,6 +127,7 @@ static void _Refresh(const struct _RP_Guide3X3 *pGuide,
       Plot_SetPenColor(pGuide->Desc.Fg[1]);         
       Plot_LineH(x - 2, y - 2, ePicBuf.Header.w);
     }
+    #endif //SUPPORT_RP_GUIDE3X3_PUSH
   }//end for
 }
 
@@ -139,6 +166,7 @@ void RP_Guide3X3_Init(struct _RP_Guide3X3 *pGuide,//确保Desc初始化
   //全部不可选择,强制开启中间
   pGuide->Desc.Cfg |= (1 << 5);
   pGuide->Focus = 5;
+  pGuide->PrvFocus = 0xff;//上次无焦点
   return;
 }
 
@@ -202,11 +230,15 @@ void RP_Guide3X3_Key(struct _RP_Guide3X3 *pGuide,
   }
   
   if(Focus == OrgFocus) return;//选择未改变
-    pGuide->Focus = Focus;
+  pGuide->Focus = Focus;
+  pGuide->PrvFocus = OrgFocus;  
     
   if(Cfg & RP_GUIDE3X3_AUTO_ENTER) //自动选择时
     RP_Guide3X3_cbSelFinal(pGuide->Desc.Handle, Focus);
-  else _Refresh(pGuide, (1 << Focus) | (1 << OrgFocus));//刷新变动前后图标
+  else{//刷新变动前后图标
+    _Refresh(pGuide, (1 << Focus) | (1 << OrgFocus));
+    pGuide->PrvFocus = 0xff; //上次刷新完成
+  }
 }
 
 //----------------------------任务处理函数----------------------------

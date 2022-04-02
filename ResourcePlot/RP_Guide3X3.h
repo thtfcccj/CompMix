@@ -5,7 +5,9 @@
 ***********************************************************************/
 #ifndef __RP_GUIDE3X3_H 
 #define __RP_GUIDE3X3_H 
-
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 /***********************************************************************
                              说明
 ***********************************************************************/
@@ -38,6 +40,16 @@
 #ifndef RP_GUIDE3X3_AUTO_SEL_OV    
   #define RP_GUIDE3X3_AUTO_SEL_OV   10//自动选择打开时，进入时间
 #endif
+
+//Rp_Guide3X3显示样式,选中与不选中支持,有需要支持的样式时需开启:
+//#define SUPPORT_RP_GUIDE3X3_PIC2    //双图标模式: 即选中为第二图标
+//#define SUPPORT_RP_GUIDE3X3_REPLACE //替换模式: 将图标中的背景色改为指定色
+//#define SUPPORT_RP_GUIDE3X3_RECT    //描边模式: 即四周增加指定色色框
+//#define SUPPORT_RP_GUIDE3X3_POP     //吸附模式: 图标向左上移动2个像素并增加指定阴影
+//#define SUPPORT_RP_GUIDE3X3_PUSH    //按下模式: 图标向右下移动2个像素并增加指定阴影
+//#define SUPPORT_RP_GUIDE3X3_INC     //加色模式: 图标的每个像素RGB增加指定色值以改变颜色
+//#define SUPPORT_RP_GUIDE3X3_DEC     //减色模式: 图标的每个像素RGB减去指定色值以改变颜色
+
 
 /***********************************************************************
                              相关结构
@@ -88,6 +100,7 @@ struct _RP_Guide3X3{
   unsigned char DyncTimer;   //动画定时器  
   unsigned char Countdown;   //自动选择倒计定时器
   unsigned char Focus;      //焦点，即选择的IconId
+  unsigned char PrvFocus;   //上次焦点位置,用于清除
 };
 
 /************************************************************************
