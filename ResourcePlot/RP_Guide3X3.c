@@ -171,7 +171,7 @@ void RP_Guide3X3_Init(struct _RP_Guide3X3 *pGuide,//确保Desc初始化
 }
 
 //-----------------------------按键处理函数----------------------------
-//GuideKey定义为: 确认0左1上2右3下4,
+//GuideKey定义为: 确认0左1上2右3下4,,及数字键'1'-'9'
 void RP_Guide3X3_Key(struct _RP_Guide3X3 *pGuide,
                       unsigned char GuideKey)
 {
@@ -226,7 +226,15 @@ void RP_Guide3X3_Key(struct _RP_Guide3X3 *pGuide,
       if(Cfg & (1 << Focus)) break; //最上允许选择了
       else Focus = OrgFocus; //最上不允许选择，还原
       break;
-    default: return; //其它键不支持 
+    default: //其它键
+      //响应数字键
+      if((GuideKey >= '1') && (GuideKey <= '9')){
+        GuideKey -= '1';
+        if(((unsigned short)1 << (GuideKey)) & pGuide->Desc.Cfg)
+          Focus = GuideKey;
+        else return;//不能选择!
+      }
+      else return; //其它键不支持 
   }
   
   if(Focus == OrgFocus) return;//选择未改变
@@ -248,6 +256,7 @@ void RP_Guide3X3_Task(struct _RP_Guide3X3 *pGuide)
   //自动选择倒计时及处理
   if(pGuide->Countdown){
     pGuide->Countdown--;
+    RP_Guide3X3_cbCountdownNotify(pGuide->Countdown);
     if(!pGuide->Countdown){//时间到了
       RP_Guide3X3_cbSelFinal(pGuide->Desc.Handle, pGuide->Focus);
       return;

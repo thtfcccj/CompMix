@@ -1,6 +1,6 @@
 /***********************************************************************
 
-                 资源文件型导航键模式3x3菜单实现
+                 阵列区域绘图模块实现
 本模块独立于应用
 ***********************************************************************/
 
@@ -222,7 +222,7 @@ static signed char _PageDown(struct _RP_AryArea *pArea,
 }
 
 //-----------------------------按键处理函数----------------------------
-//GuideKey定义为: 确认0左1上2右3下4, 5上一页，6下一页
+//GuideKey定义为: 确认0左1上2右3下4, 5上一页，6下一页,及数字键'1'-'9'
 void RP_AryArea_Key(struct _RP_AryArea *pArea,
                       unsigned char GuideKey)
 {
@@ -269,7 +269,12 @@ void RP_AryArea_Key(struct _RP_AryArea *pArea,
         }
       }
       break;  
-    default: return; //其它键不支持 
+    default: //其它键
+      //响应数字键
+      if((GuideKey >= '1') && (GuideKey <= '9')){
+        Focus = GuideKey - '1';
+      }
+      else return; //其它键不支持 
   }
   pArea->Focus = Focus;
   _ResetTimer(pArea);
