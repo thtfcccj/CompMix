@@ -7,9 +7,35 @@
 #include "ZipTime_TMenu.h"
 #include "ZipTime.h"
 #include "TMenu_MNumAdj.h"
+#include "UiTips.h"
 
 #include <string.h>
 
+
+//----------------------------内部字符资源------------------------------- 
+#ifdef TM_EN_MUTI_LAN            //常量选择型多国语言时
+  //暂不支持常量选择型字符串
+#elif defined(TM_RESOURCE_LAN)  //由资源文件获取多国语言时
+  //菜单
+  #include "lsAry.h"
+  //提示
+  #include "Rid.h"
+  #include "RidNote.h"
+  #define ls_OpFinal   RID_pGeNote(RID_NOTE_OP_FINAL)
+#else  //单一语言字符串时
+  //菜单
+  static const char ls_Year[] = {"年"};
+  static const char ls_Month[] = {"月"};
+  static const char ls_Day[] = {"日"};
+  static const char ls_Hour[] = {"时"};
+  static const char ls_Minute[] = {"分"};
+  static const char ls_TimeSet[]= {"时间设置"};
+  //提示
+  extern const char ls_OpFinal[]= {"操作成功!"};
+  
+#endif
+
+//----------------------------------回调函数------------------------------- 
 //描述
 static const struct _MNumDesc _TimeSetDesc[] = {
   {MNUM_TYPE_DEC, ZipTime_cbGetStartYear(), ZipTime_cbGetStartYear() + 63},//年
@@ -45,7 +71,7 @@ static void _Notify(unsigned char Type,//通报类型
                        pUser->Value[4],
                        0);               //固定为0
     Menu_ZipTime_cbSet(ZipTime);
-    TMenu_Note(NULL); //提示成功
+    UiTips_UpdateS(ls_OpFinal); //提示成功
     break; 
   }
   case TM_NOTIFY_MNUM_GET_DESC:{ //得到数值描述
@@ -58,35 +84,18 @@ static void _Notify(unsigned char Type,//通报类型
   }
 }
 
+//时间对应的字符
+const LanCode_t* const lsAry_Time[] = {
+  ls_Year, ls_Month, ls_Day, ls_Hour, ls_Minute};
+
 //--------------------------顶层菜单结构----------------------------
-#ifdef TM_EN_MUTI_LAN            //常量选择型多国语言时
-  //暂不支持常量选择型字符串
-#elif defined(TM_RESOURCE_LAN)  //由资源文件获取多国语言时
-  static const LanCode_t  _TimeSet[]= {ZIP_TIME_TMENU_PID, 0};
-  static const LanCode_t _Year[] = {ZIP_TIME_TMENU_PID, 1};
-  static const LanCode_t _Month[] = {ZIP_TIME_TMENU_PID, 2};
-  static const LanCode_t _Day[] = {ZIP_TIME_TMENU_PID, 3};
-  static const LanCode_t _Hour[] = {ZIP_TIME_TMENU_PID, 4};
-  static const LanCode_t _Minute[] = {ZIP_TIME_TMENU_PID, 5};
-#else  //单一语言字符串时
-  static const char _TimeSet[]= {"时间设置"};
-  static const char _Year[] = {"年"};
-  static const char _Month[] = {"月"};
-  static const char _Day[] = {"日"};
-  static const char _Hour[] = {"时"};
-  static const char _Minute[] = {"分"};
-#endif
 
-static const LanCode_t * const _TimeAry[] = {
-  _Year, _Month, _Day, _Hour, _Minute
-};
-
-const TMenu_t Menu_ZipTime = {//菜单结构
+const TMenu_t ZipTime_TMenu = {//菜单结构
   TMTYPE_MNUMADJ | TM_MNUMADJ_WRITE, //菜单类型为多值调整模式模式与用户区标志
   5,                          //由菜单类型决定的相关数据大小
-  _TimeSet,                //菜单头,为NULL时从回调里读取
+  ls_TimeSet,                //菜单头,为NULL时从回调里读取
   ZIP_TIME_TMENU_PARENT,      //自已的父菜单
-  _TimeAry,                //存放自已的子菜单阵列连接头
+  lsAry_Time,                //存放自已的子菜单阵列连接头
   _Notify,                    //与用户空间交互的通报函数
 };
 
