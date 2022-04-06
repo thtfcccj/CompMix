@@ -20,10 +20,11 @@ extern const TMenu_t ZipTime_TMenu; //菜单结构
 
 //----------------------------自已的父菜单----------------------------------
 #ifndef ZIP_TIME_TMENU_PARENT
-  #define ZIP_TIME_TMENU_PARENT   NULL //外部必须实现，此定义仅为编译通过
+  extern const TMenu_t Sys_TMenu;
+  #define  ZIP_TIME_TMENU_PARENT  &Sys_TMenu
 #endif
 
 //-------------------------------设置当前时间----------------------------------
-void Menu_ZipTime_cbSet(unsigned long ZipTime);
+//void Menu_ZipTime_cbSet(unsigned long ZipTime);
   
 #endif

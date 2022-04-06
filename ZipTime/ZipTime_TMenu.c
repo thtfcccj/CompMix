@@ -5,12 +5,13 @@
 *******************************************************************************/
 
 #include "ZipTime_TMenu.h"
-#include "ZipTime.h"
 #include "TMenu_MNumAdj.h"
 #include "UiTips.h"
 
 #include <string.h>
 
+#include "ZipTime.h"
+#include "RTC.h" //RTC_SetRTC
 
 //----------------------------内部字符资源------------------------------- 
 #ifdef TM_EN_MUTI_LAN            //常量选择型多国语言时
@@ -63,14 +64,20 @@ static void _Notify(unsigned char Type,//通报类型
     break;
   }
   case TM_NOTIFY_SET_DATA:{ //保存设定值
-    unsigned long ZipTime = 
+    RTC_SetRTC(pUser->Value[0] -  - ZipTime_cbGetStartYear(),
+                       pUser->Value[1],
+                       pUser->Value[2],
+                       pUser->Value[3],
+                       pUser->Value[4],
+                       0);
+    /*unsigned long ZipTime = 
       ZipTime_FromTime(pUser->Value[0] - ZipTime_cbGetStartYear(),
                        pUser->Value[1],
                        pUser->Value[2],
                        pUser->Value[3],
                        pUser->Value[4],
                        0);               //固定为0
-    Menu_ZipTime_cbSet(ZipTime);
+    Menu_ZipTime_cbSet(ZipTime);*/
     UiTips_UpdateS(ls_OpFinal); //提示成功
     break; 
   }
