@@ -57,7 +57,7 @@ unsigned short RI_GetOffPos(const unsigned char *pBase,//资源基址
 //------------------------------由资源ID得到数据--------------------------
 //未找到时返回RI_NULL
 const unsigned char *RI_pGetData(const unsigned char *pBase,//资源基址
-                                  unsigned char ResId);
+                                   unsigned char ResId);
 
 //------------------------------由资源ID得到数据--------------------------
 //形参为unsigned long型时
@@ -68,9 +68,13 @@ const unsigned char *RI_pGetData(const unsigned char *pBase,//资源基址
                      RI_pGetData((const unsigned char *)(base),resId)
 
 //----------------------------由资源ID得到数据大小-------------------------
-//未找到时返回0
+//即此资源所占空间，未找到时返回0
 unsigned short RI_GetSize(const unsigned char *pBase,//资源基址
                            unsigned short ResId);
+                     
+//------------------------------得到资源内ID总数---------------------------
+unsigned short RID_GetIdCount(const unsigned char *pBase);
+                     
 
 #endif  //#ifndef __RESOURCE_INDEX_H 
 

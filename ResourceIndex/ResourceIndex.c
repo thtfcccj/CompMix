@@ -54,6 +54,16 @@ unsigned short RI_GetSize(const unsigned char *pBase,//资源基址
   return Len;
 }
 
+//------------------------------得到资源内ID总数---------------------------
+unsigned short RID_GetIdCount(const unsigned char *pBase)
+{
+  #if RI_HEADER_LEN == 1
+    return  RI_GetOffPos(pBase, 0);
+  #else // RI_HEADER_LEN == 2
+    return  RI_GetOffPos(pBase, 0) / 2;
+  #endif
+}
+
 
 
 
