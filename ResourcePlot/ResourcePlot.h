@@ -87,8 +87,8 @@ struct _RpIconDesc{        //->此结构在资源定中的前缀标识  "RPI_ARY"
 
 //信息位定义为：
 #define RP_ICON_ID_MASK      0x3F  //b0~b5图标ID(同一界面最大支持64个图标)
-#define RP_ICON_X9           0x40  //b6=1时x轴+256
-#define RP_ICON_Y9           0x80  //b7=1时y轴+256
+#define RP_ICON_Y9           0x40  //b6=1时y轴+256
+#define RP_ICON_X9           0x80  //b7=1时x轴+256
 
 //注1：系统将相同类型的图标统一管理，从中找出该图标绘制函数查找表进行绘制。
 //注2：图标可能为wmp格式时,资源文件应提供图标ID对应的前景色阵列用于绘制。
@@ -105,8 +105,8 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
 
 //信息位定义为：
 #define RP_PARA_ID_MASK      0x3F  //b0~b5参数ID(同一界面最大支持64个参数)
-#define RP_PARA_X9           0x40  //b6=1时x轴+256
-#define RP_PARA_Y9           0x80  //b7=1时y轴+256
+#define RP_PARA_Y9           0x40  //b6=1时x轴+256
+#define RP_PARA_X9           0x80  //b7=1时y轴+256
 
 //其它参数,定义为：
 #define RP_PARA_TYPE_PARA       0x0F  //由参数类型决定的参数

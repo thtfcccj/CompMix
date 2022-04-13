@@ -33,12 +33,12 @@ void RP_PaintIcon(unsigned long Handle,const struct _RpIconDesc *pDesc,
                   unsigned short x, unsigned short y)//相对x,y
 {
   if(pDesc == NULL) return; //异常
-  const unsigned char *ePic = RP_cbGetIcon(Handle,
-                                            pDesc->Info & RP_ICON_ID_MASK);  
+  unsigned char IconId = pDesc->Info & RP_ICON_ID_MASK;  
+  const unsigned char *ePic = RP_cbGetIcon(Handle, IconId);  
   if(ePic == RI_NULL) return;//异常未找到
   //找到x,y及调色板信息
   //设置调色板,已提前预置背景色
-  unsigned char IconId = pDesc->Info & RP_ICON_ID_MASK;
+  
   Plot_SetPenColor(RP_cbGetIconFg(Handle,IconId));
   ePic_ePicBuf(ePic, RP_cbGetIconSize(Handle,IconId));//初始化ePic
   ePic_Plot(x + _GetX((const struct _RpParaDesc *)pDesc), 

@@ -58,9 +58,9 @@ unsigned short RI_GetSize(const unsigned char *pBase,//资源基址
 unsigned short RID_GetIdCount(const unsigned char *pBase)
 {
   #if RI_HEADER_LEN == 1
-    return  RI_GetOffPos(pBase, 0);
+    return  RI_GetOffPos(pBase, 0) - 1; //最后一个ID指向的是文件结尾，不算
   #else // RI_HEADER_LEN == 2
-    return  RI_GetOffPos(pBase, 0) / 2;
+    return  RI_GetOffPos(pBase, 0) / 2 - 1;//最后一个ID指向的是文件结尾，不算
   #endif
 }
 
