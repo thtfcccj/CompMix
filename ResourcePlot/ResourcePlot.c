@@ -64,12 +64,13 @@ void RP_PaintPara(unsigned long Handle,const struct _RpParaDesc *pDesc,
     Plot_SetPenColor(RP_cbGetStringFg(Handle,ParaId));
     //仅支持半角字体选择
     unsigned char fFontId = pDesc->Para & RP_PARA_FONT_MASK;
-    if(fFontId) fFontId++;//1是全角字体，要避开。
+    if(fFontId) fFontId++;//1是全角字体，要避开。 
     
     const struct _FontsDesc *pFontBase = (const struct _FontsDesc*)FONTS_DESC_BASE;
     Font_PlotLine(pFontBase + fFontId,//半角时使用的字体
                   pFontBase + 1, //全角时使用的字体,固定为1
-                  x,y,pSring);
+                  x,y,pSring, 
+                  (pDesc->Para >> RP_PARA_FONT_MUTI_SHIRT) + 1);
     return;
   }
   if(mType != RP_PARA_TYPE_TOOLS) return; //其它暂不支持

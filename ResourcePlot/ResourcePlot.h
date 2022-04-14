@@ -109,23 +109,20 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
 #define RP_PARA_X9           0x80  //b7=1时y轴+256
 
 //其它参数,定义为：
-#define RP_PARA_TYPE_PARA       0x0F  //由参数类型决定的参数
-#define RP_PARA_EN_FUN          0x10  //由参数类型决定的相关使能位
-#define RP_PARA_TYPE_MASK       0xE0  //参数类型，定义为：
+#define RP_PARA_TYPE_MASK       0xE0  //参数类型见定义
 #define RP_PARA_TYPE_SHIFT      4
+#define RP_PARA_TYPE_PARA       0x1F  //由参数类型决定的参数
 
-//字符串型：
+//参数类型为字符串型：
 #define RP_PARA_TYPE_STRING  0     //低5b参数为:
-  #define RP_PARA_FONT_MUTI2   0x10  //字符串时，字体放大1倍显示
-  #define RP_PARA_FONT_MASK    0x0F  //字符串时，使用的字体ID号
+  #define RP_PARA_FONT_MUTI   0x18  //字符串时，字体放大倍数
+  #define RP_PARA_FONT_MUTI_SHIRT 3  
+  #define RP_PARA_FONT_MASK    0x07  //字符串时，使用的字体ID号
   //字符串型无附加结构：通过回调获得：字符串与字符串颜色。
 
 //工具类：
 #define RP_PARA_TYPE_TOOLS   0xE0   //工具类，TYPE_PARA为工具类型:
 #include "RpTools.h"    //每个工具有其独立的描述参数,在此定义
-
-
-
 
 //注1：系统将相同类型的绘图参数函数组成阵列，从中找出该函数进行给制。
 //注2：资源文件应提供变量ID相关的颜色(可根据状态切换颜色)以用于绘制。
