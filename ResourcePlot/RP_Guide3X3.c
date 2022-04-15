@@ -146,7 +146,7 @@ void RP_Guide3X3_Init(struct _RP_Guide3X3 *pGuide,//确保Desc初始化
   
   //最后Focus初始化，防止并初始化时纠错
   if((DefaultFocus < 0) || (DefaultFocus >= 9))//焦点在中间
-    DefaultFocus = 5; 
+    DefaultFocus = 4; 
   unsigned short Cfg = pGuide->Desc.Cfg;
   signed char Focus = DefaultFocus;
   for(; Focus >= 0; Focus--){//用前向纠错
