@@ -50,22 +50,20 @@ static void _Refresh(struct _RP_AryArea *pArea,
     Plot_FullRect(x, y,pMainDesc->Rect.w,pMainDesc->Rect.h);
     PlotMask = 0x0f;//需所有
   }
+  
   const struct _RpAryAreaDesc *pAryDesc = pArea->pAryDesc;   //项描述
   unsigned char RowCount = pAryDesc->RowCount;
   //得到项宽度与项x起始
-  unsigned short pw = pMainDesc->Rect.w / RowCount; //所占宽度
-  if(!(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN)) pw -= 2; //留出画边框高度
-  if(pw <= pAryDesc->Rect.w) return;//留出的宽度太窄，异常
-  x += pAryDesc->Rect.x + pw / 2; //x起始
+  unsigned short pw = pAryDesc->Rect.w; //所占宽度
+  x += pAryDesc->Rect.x; //x起始
+  
   //得到项高度与项y起始
-  unsigned short ph = pMainDesc->Rect.h / pAryDesc->ColCount; //所占高度
-  if(!(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN)) ph -= 2; //留出画边框高度
-  if(ph <= pAryDesc->Rect.h) return;//留出的高度太窄，异常
-  y += pAryDesc->Rect.y + ph / 2; //y起始
-
+  unsigned short ph = pAryDesc->Rect.h; //所占高度
+  y += pAryDesc->Rect.y; //y起始  
+  
   //初始化FDesc本次固定部分
-  pArea->FDesc.Rect.w = pMainDesc->Rect.w;
-  pArea->FDesc.Rect.h = pMainDesc->Rect.w;
+  pArea->FDesc.Rect.w = pAryDesc->Rect.w;
+  pArea->FDesc.Rect.h = pAryDesc->Rect.h;
   pArea->FDesc.cBg = pAryDesc->cBg;
   pArea->FDesc.IconBgId = pAryDesc->IconBgId;
   //初始化RP_FixArea需要的PlotMask与Handle;
@@ -123,8 +121,16 @@ static void _Refresh(struct _RP_AryArea *pArea,
   //========================扫描更新内容=========================
   unsigned short Count = RowCount * pAryDesc->ColCount;//页内阵列总数
   if(Count > 255) return ;//异常
+  
+  if(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN)
+    PlotMask &= ~0x01;//若为背景图片，则用背景图片代替背景图
+  
   Pos = 0; //从头开始
   for(; Pos < Count; Pos++, AryId++){
+    if(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN){//背景图变化焦点时替换背景
+      if(Pos == pArea->Focus) pArea->FDesc.cBg = pAryDesc->cFocus;
+      else pArea->FDesc.cBg = pAryDesc->cBg;
+    }
     signed char Resumme = RP_AryArea_cbGetSTypeInfo(Handle, AryId,
                                                     &pArea->STypeInfo);
     if(Resumme == 0){//结束了
@@ -148,6 +154,7 @@ static void _Refresh(struct _RP_AryArea *pArea,
   if(Pos >= Count) return;
   if(PlotMask == 0xff) return;//已整屏清屏了
   //清除余下区域防止翻页时遗留(实际应刷新整页) 
+  Plot_SetBrushColor(pMainDesc->cBg); 
   for(; Pos < Count; Pos++){
     pArea->FDesc.Rect.x = x + pw * (Pos % RowCount);
     pArea->FDesc.Rect.y = y + ph * (Pos / RowCount);
@@ -280,7 +287,7 @@ void RP_AryArea_Key(struct _RP_AryArea *pArea,
   _ResetTimer(pArea);
   //页变化
   if(PrvAryStart != pArea->AryStart){
-    pArea->PlotMask = 0xff; //刷新所有
+    pArea->PlotMask = 0x7f; //刷新所有
     _Refresh(pArea, 0); //更新页面
     _RefreshFocus(pArea); //更新焦点
     return;

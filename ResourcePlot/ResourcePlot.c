@@ -35,7 +35,7 @@ void RP_PaintIcon(unsigned long Handle,const struct _RpIconDesc *pDesc,
   if(pDesc == NULL) return; //异常
   unsigned char IconId = pDesc->Info & RP_ICON_ID_MASK;  
   const unsigned char *ePic = RP_cbGetIcon(Handle, IconId);  
-  if(ePic == RI_NULL) return;//异常未找到
+  if((ePic == NULL) || (ePic == RI_NULL)) return;//异常未找到
   //找到x,y及调色板信息
   //设置调色板,已提前预置背景色
   
@@ -51,30 +51,45 @@ void RP_PaintPara(unsigned long Handle,const struct _RpParaDesc *pDesc,
                   unsigned short x, unsigned short y)//相对x,y
 {
   if(pDesc == NULL) return; //异常
+  x += _GetX(pDesc);  //x绝对位置
+  y += _GetY(pDesc);  //y绝对位置 
   unsigned char ParaId = pDesc->Info & RP_PARA_ID_MASK;
   unsigned char Para = pDesc->Para;
   unsigned char mType = Para & RP_PARA_TYPE_MASK; 
   //===========================字符串型绘制=============================  
-  if(mType == RP_PARA_TYPE_STRING){
+  if((mType == RP_PARA_TYPE_STRING) || (mType == RP_PARA_TYPE_STRING1)){
     const char *pSring = RP_cbGetString(Handle,ParaId);  
     if(pSring == NULL) return;//异常未找到
-    x += _GetX(pDesc);  //x绝对位置
-    y += _GetY(pDesc);  //y绝对位置 
     //设置调色板,已提前预置背景色
     Plot_SetPenColor(RP_cbGetStringFg(Handle,ParaId));
+    //动态背景色时置当前使用的背景色
+    Color_t prvBg;
+    if(mType == RP_PARA_TYPE_STRING1){
+      prvBg = Plot_GetBrushColor();
+      Plot_SetBrushColor(RP_cbGetStringBg(Handle,ParaId));
+    }
+    //转换FontInfo
+    unsigned char FontInfo = ((pDesc->Para & 0x0C) << 2);//对齐方式
+    if(pDesc->Para & RP_PARA_FONT_MUTI2) FontInfo += 2;//两倍放大
+    else FontInfo += 1;//1倍放大
+    unsigned char MaxLen;
+    if(FontInfo & 0x30) MaxLen = RP_cbGetStrMaxLen(Handle,ParaId);
+    else MaxLen = 0;
+    
     //仅支持半角字体选择
     unsigned char fFontId = pDesc->Para & RP_PARA_FONT_MASK;
-    if(fFontId) fFontId++;//1是全角字体，要避开。 
-    
+    if(fFontId) fFontId++;//1是全角字体，要避开。    
     const struct _FontsDesc *pFontBase = (const struct _FontsDesc*)FONTS_DESC_BASE;
     Font_PlotLine(pFontBase + fFontId,//半角时使用的字体
                   pFontBase + 1, //全角时使用的字体,固定为1
-                  x,y,pSring, 
-                  (pDesc->Para >> RP_PARA_FONT_MUTI_SHIRT) + 1);
+                  x,y,pSring, MaxLen, FontInfo);
+    if(mType == RP_PARA_TYPE_STRING1) //动态背景色时恢复原有的背景色
+      Plot_SetBrushColor(prvBg);
     return;
   }
   if(mType != RP_PARA_TYPE_TOOLS) return; //其它暂不支持
-  //工具类具体绘制：
+  
+  //============================工具类具体绘制===========================
   unsigned char ToolsType = Para & RP_PARA_TYPE_PARA;
   if(ToolsType >= RP_TOOLS_COUNT)  return;//不支持的工具类
   //提前读取

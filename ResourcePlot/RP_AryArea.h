@@ -49,7 +49,6 @@ struct _RP_AryArea_STypeInfo{
 
 //---------------------------主结构----------------------------------
 struct _RP_AryArea{
-  
   const struct _RpMainAreaDesc *pMainDesc; //整体描述
   const struct _RpAryAreaDesc *pAryDesc;   //项描述 
   unsigned long Handle;                   //主句柄 

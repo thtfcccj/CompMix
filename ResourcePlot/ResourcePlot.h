@@ -71,8 +71,8 @@ struct _RpAryAreaDesc{    //->此结构在资源定中的前缀标识  "RPX_"
   Color_t cFocus;           //被选中时边界颜色  
 };
 //位信息定义为：
-#define RP_ITEM_REAL_REFRESH       0x80  //项内有需要实时刷新的数据
 #define RP_ITEM_DIS_FOCUS          0x40  //无焦点区，即不响应点击
+#define RP_ITEM_REAL_REFRESH       0x20  //项内有需要实时刷新的数据
 #define RP_ITEM_ICON_BG_FOCUS_EN   0x10  //背景图片焦点有效，即选中时使用图片
 #define RP_ITEM_ID_MASK            0x0F  //应用层使用同一函数时，此结构的ID号
 
@@ -114,11 +114,14 @@ struct _RpParaDesc{        //->此结构在资源定中的前缀标识  "RPP_ARY"
 #define RP_PARA_TYPE_PARA       0x1F  //由参数类型决定的参数
 
 //参数类型为字符串型：
-#define RP_PARA_TYPE_STRING  0     //低5b参数为:
-  #define RP_PARA_FONT_MUTI   0x18  //字符串时，字体放大倍数
-  #define RP_PARA_FONT_MUTI_SHIRT 3  
-  #define RP_PARA_FONT_MASK    0x07  //字符串时，使用的字体ID号
+#define RP_PARA_TYPE_STRING    0x00  //普通字符串，低5b参数为:
+  #define RP_PARA_FONT_MUTI2   0x10  //字符串时，字体放大两倍，默认1倍
+  #define RP_PARA_ALIGN_MASK   0x0C  //对齐方式,0左对齐,1中间对齐，2右对齐
+  #define RP_PARA_ALIGN_SHIFT  2
+  #define RP_PARA_FONT_MASK    0x03  //ASC字符串时使用的字体ID号
   //字符串型无附加结构：通过回调获得：字符串与字符串颜色。
+
+#define RP_PARA_TYPE_STRING1 0x20   //动态(回调获得)背景色，低5b同RP_PARA_TYPE_STRING
 
 //工具类：
 #define RP_PARA_TYPE_TOOLS   0xE0   //工具类，TYPE_PARA为工具类型:
@@ -184,9 +187,17 @@ const struct _RpParaDesc *RP_cbGetParaDesc(unsigned long Handle,
 const char * RP_cbGetString(unsigned long Handle,
                              unsigned char ParaAryId);
 
+//----------------------------由参数ID找字符串最大长度---------------------------
+unsigned char RP_cbGetStrMaxLen(unsigned long Handle,
+                                 unsigned char ParaId);
+
 //----------------------------由参数ID找字符串前景色--------------------------
 Color_t RP_cbGetStringFg(unsigned long Handle,
                         unsigned char ParaId);
+
+//----------------------------由参数ID找字符串背景色--------------------------
+Color_t RP_cbGetStringBg(unsigned long Handle,
+                         unsigned char ParaId);
 
 //------------------------由参数ID找到非字符串型描述信息----------------------
 //即提向资源文件常量区的指针

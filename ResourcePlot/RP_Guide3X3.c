@@ -17,6 +17,12 @@
 static void _Refresh(struct _RP_Guide3X3 *pGuide,
                       unsigned short Mask)
 {
+  Plot_SetBrushColor(pGuide->Desc.Bg);  
+  //刷新底图
+  if(Mask & 0x8000){
+    Plot_FullRect(pGuide->Desc.Rect.x, pGuide->Desc.Rect.y,
+                  pGuide->Desc.Rect.w, pGuide->Desc.Rect.h);
+  }
   unsigned char Focus = pGuide->Focus;
   for(unsigned char Pos = 0; Pos < 9; Pos++){
     if(!(Mask & (1 << Pos))) continue;//不刷新
@@ -40,8 +46,7 @@ static void _Refresh(struct _RP_Guide3X3 *pGuide,
     if((ePic == NULL) || (RP_Guide3X3_cbGetIconSize(Handle, IconId) == 0))
       return; //异常
       
-    //==================画图片： 找到x,y及调色板信息==================
-    Plot_SetPenStyle(pGuide->Desc.Bg);   
+    //==================画图片： 找到x,y及调色板信息================== 
     ePic_ePicBuf(ePic, RP_cbGetIconSize(Handle,IconId));//初始化ePic    
     unsigned short pw = pGuide->Desc.Rect.w / 3; //所占宽度
     if(ePicBuf.Header.w >= pw) continue;//图片信息异常
@@ -89,8 +94,8 @@ static void _Refresh(struct _RP_Guide3X3 *pGuide,
     if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_POP){
       //取消焦点时，需去除左侧与上侧未被擦除的图标痕迹
       if(Pos == pGuide->PrvFocus){
-        Plot_FullRect(x - 2, y - 2, 2, ePicBuf.Header.h);
-        Plot_FullRect(x - 2, y - 2, ePicBuf.Header.w,2);
+        Plot_FullRect(x - 2, y - 2, 2, ePicBuf.Header.h + 2);
+        Plot_FullRect(x - 2, y - 2, ePicBuf.Header.w + 2, 2);
         continue;
       }
       //焦点时,右侧与下侧增加Fg[0]Fg[1]色共两个像素指定阴影
@@ -113,8 +118,8 @@ static void _Refresh(struct _RP_Guide3X3 *pGuide,
     if(pGuide->Desc.Style == RP_GUIDE3X3_STYLE_PUSH){
       //取消焦点时，需去除右侧与下侧未被擦除的图标痕迹
       if(Pos == pGuide->PrvFocus){
-        Plot_FullRect(x + ePicBuf.Header.w, y + 2, 2, ePicBuf.Header.h);
-        Plot_FullRect(x + 2, y + ePicBuf.Header.h, ePicBuf.Header.w,2);
+        Plot_FullRect(x + ePicBuf.Header.w, y + 2, 2, ePicBuf.Header.h + 2);
+        Plot_FullRect(x + 2, y + ePicBuf.Header.h, ePicBuf.Header.w + 2,2);
         continue;
       }
       //图标向右下移动2个像素，同时左侧与上侧增加共两个像素指定阴影
@@ -152,14 +157,14 @@ void RP_Guide3X3_Init(struct _RP_Guide3X3 *pGuide,//确保Desc初始化
   for(; Focus >= 0; Focus--){//用前向纠错
     if(Cfg & (1 << Focus)){//找到了
       pGuide->Focus = Focus;
-      _Refresh(pGuide,pGuide->Desc.Cfg);//全部刷新
+      _Refresh(pGuide,pGuide->Desc.Cfg | 0x8000);//全部刷新
       return; 
     }
   }
   for(; Focus < 9; Focus++){//用后向纠错
     if(Cfg & (1 << Focus)){//找到了
       pGuide->Focus = Focus;
-      _Refresh(pGuide,pGuide->Desc.Cfg);//全部刷新
+      _Refresh(pGuide,pGuide->Desc.Cfg | 0x8000);//全部刷新
       return; 
     }
   }
@@ -227,11 +232,15 @@ void RP_Guide3X3_Key(struct _RP_Guide3X3 *pGuide,
       else Focus = OrgFocus; //最上不允许选择，还原
       break;
     default: //其它键
-      //响应数字键
+      //响应数字键直接进入
       if((GuideKey >= '1') && (GuideKey <= '9')){
         GuideKey -= '1';
-        if(((unsigned short)1 << (GuideKey)) & pGuide->Desc.Cfg)
+        if(((unsigned short)1 << (GuideKey)) & pGuide->Desc.Cfg){
           Focus = GuideKey;
+          pGuide->Focus = Focus;
+          RP_Guide3X3_cbSelFinal(pGuide->Desc.Handle, Focus);
+          return;
+        }
         else return;//不能选择!
       }
       else return; //其它键不支持 
@@ -241,12 +250,11 @@ void RP_Guide3X3_Key(struct _RP_Guide3X3 *pGuide,
   pGuide->Focus = Focus;
   pGuide->PrvFocus = OrgFocus;  
     
-  if(Cfg & RP_GUIDE3X3_AUTO_ENTER) //自动选择时
-    RP_Guide3X3_cbSelFinal(pGuide->Desc.Handle, Focus);
-  else{//刷新变动前后图标
-    _Refresh(pGuide, (1 << Focus) | (1 << OrgFocus));
-    pGuide->PrvFocus = 0xff; //上次刷新完成
-  }
+  //自动选择时,任意键取消此模式
+  if(Cfg & RP_GUIDE3X3_AUTO_ENTER) pGuide->Countdown = 0;
+  //刷新变动前后图标
+  _Refresh(pGuide, (1 << Focus) | (1 << OrgFocus));
+  pGuide->PrvFocus = 0xff; //上次刷新完成
 }
 
 //----------------------------任务处理函数----------------------------
