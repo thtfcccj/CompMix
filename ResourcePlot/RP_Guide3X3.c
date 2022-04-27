@@ -279,4 +279,12 @@ void RP_Guide3X3_Task(struct _RP_Guide3X3 *pGuide)
   }
 }
 
+//-------------------------------刷新所有函数----------------------------
+//用于立即重建所有数据
+void RP_Guide3X3_RefreshAll(struct _RP_Guide3X3 *pGuide)
+{
+  _Refresh(pGuide,pGuide->Desc.Cfg | 0x8000);//全部刷新
+}
+
+
 

@@ -84,11 +84,11 @@ void RP_AryArea_Task(struct _RP_AryArea *pArea);
 
 //-------------------------------刷新所有函数----------------------------
 //用于立即重建所有数据
-#define RP_AryArea_RefreshAll(area) do{(area)->PlotMask = 0xff; }while(0)
+void RP_AryArea_RefreshAll(struct _RP_AryArea *pArea);
 
 //-------------------------------刷新普通数据函数----------------------------
 //用于立即重建普通数据
-#define RP_AryArea_RefreshNor(area) do{(area)->RefreshTimer = 0x06; }while(0)
+#define RP_AryArea_RefreshNor(area) do{(area)->RefreshTimer = 1; }while(0)
 
 //-----------------------------按键处理函数----------------------------
 //GuideKey定义为: 确认0左1上2右3下4, 5上一页，6下一页,及数字键'1'-'9'

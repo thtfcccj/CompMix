@@ -19,6 +19,7 @@ static void _PotItem(struct _RP_AryArea *pArea,
                       unsigned long Handle,
                       unsigned short x,
                       unsigned short y,
+                      unsigned char Pos,//本页更新位置
                       unsigned char PlotMask)
 {
   pArea->FDesc.Rect.x = x;
@@ -28,7 +29,27 @@ static void _PotItem(struct _RP_AryArea *pArea,
   pArea->FDesc.ParaBase = pArea->STypeInfo.ParaBase;
   pArea->FDesc.ParaCount = pArea->STypeInfo.ParaCount;
   //调用固定区域绘图
+  const struct _RpAryAreaDesc *pAryDesc = pArea->pAryDesc;   //项描述
+  if(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN){//背景图变化焦点时替换背景
+    if(Pos == pArea->Focus) pArea->FDesc.cBg = pAryDesc->cFocus;
+    else pArea->FDesc.cBg = pAryDesc->cBg;
+  }
   RP_FixArea(Handle, PlotMask, &pArea->FDesc);
+}
+
+//--------------------------更新当前项数据------------------------------
+//返回0结束,否则未结束
+static signed char  _UpdateSTypeInfo(struct _RP_AryArea *pArea,
+                                       unsigned long Handle,
+                                       unsigned short AryId)
+{
+  signed char Resumme = RP_AryArea_cbGetSTypeInfo(Handle, AryId,
+                                                  &pArea->STypeInfo);
+  //结束了
+  if(!Resumme){
+    pArea->AryCount = AryId;//动态更新
+  }
+  return Resumme;
 }
 
 //-------------------------------刷新界面------------------------------
@@ -36,7 +57,7 @@ static void _Refresh(struct _RP_AryArea *pArea,
                       signed char IsRefreshFocus)//刷新焦点，否则为PlotMask
 {
   unsigned char PlotMask;
-  if(IsRefreshFocus) PlotMask = 0x0E; //刷新焦点位置
+  if(IsRefreshFocus) PlotMask = 0x0F | 0x10; //刷新焦点位置
   else{
     PlotMask = pArea->PlotMask;
     pArea->PlotMask = 0;
@@ -72,6 +93,9 @@ static void _Refresh(struct _RP_AryArea *pArea,
     Handle |= RP_HANDLE_REAL_REFRESH;
     PlotMask = 0x0C; //仅更新项数据与项图
   }
+  if(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN)
+    PlotMask &= ~0x01;//若为背景图片，则用背景图片代替背景图
+  
   unsigned short AryId = pArea->AryStart;
   unsigned short FocusAryId; //被选Aryid
   if(pAryDesc->BitInfo & RP_ITEM_DIS_FOCUS) FocusAryId = 0xffff;//无焦点
@@ -80,7 +104,11 @@ static void _Refresh(struct _RP_AryArea *pArea,
   //========================单独更新焦点位置======================
   if(IsRefreshFocus){
     if(pAryDesc->BitInfo & RP_ITEM_DIS_FOCUS) return;//无焦点
-
+    //更新失败时表示结束了，恢复
+    if(!_UpdateSTypeInfo(pArea, Handle, FocusAryId)){
+      pArea->Focus = pArea->PrvFocus;
+      return;
+    }
     Pos = pArea->Focus;
     //边框式焦点时
     if(!(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN)){
@@ -100,30 +128,26 @@ static void _Refresh(struct _RP_AryArea *pArea,
                 pArea->FDesc.Rect.h + 2);      
       return; //更新完在
     }
-    //更新本页焦点区域及数据
-    RP_AryArea_cbGetSTypeInfo(Handle, FocusAryId, &pArea->STypeInfo);
     _PotItem(pArea, Handle | FocusAryId | pArea->STypeInfo.SType,
              x + pw * (Pos % RowCount),
              y + ph * (Pos / RowCount),
-             0x0F | 0x10); //0x10: 第二背景为选中
+             Pos,PlotMask); //0x10: 第二背景为选中
     if(Pos == pArea->PrvFocus) return; //不更新上一个
     //更新本页上次的焦点区域数据
     Pos = pArea->PrvFocus;
     pArea->PrvFocus = pArea->Focus; //更新了    
     AryId += Pos;   //上次焦点
-    RP_AryArea_cbGetSTypeInfo(Handle, AryId, &pArea->STypeInfo);
+
+    _UpdateSTypeInfo(pArea, Handle, AryId);
     _PotItem(pArea, Handle | AryId | pArea->STypeInfo.SType,
              x + pw * (Pos % RowCount),
              y + ph * (Pos / RowCount),
-             0x0F);  //未选中
+             Pos, PlotMask & 0x0f);  //未选中
     return;
   }
   //========================扫描更新内容=========================
   unsigned short Count = RowCount * pAryDesc->ColCount;//页内阵列总数
   if(Count > 255) return ;//异常
-  
-  if(pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN)
-    PlotMask &= ~0x01;//若为背景图片，则用背景图片代替背景图
   
   Pos = 0; //从头开始
   for(; Pos < Count; Pos++, AryId++){
@@ -131,10 +155,8 @@ static void _Refresh(struct _RP_AryArea *pArea,
       if(Pos == pArea->Focus) pArea->FDesc.cBg = pAryDesc->cFocus;
       else pArea->FDesc.cBg = pAryDesc->cBg;
     }
-    signed char Resumme = RP_AryArea_cbGetSTypeInfo(Handle, AryId,
-                                                    &pArea->STypeInfo);
-    if(Resumme == 0){//结束了
-      pArea->AryCount = AryId;//动态更新
+    //更新失败时表示结束了
+    if(!_UpdateSTypeInfo(pArea, Handle, AryId)){
       break;
     }
     //组织FDesc的x,y轴等信息,_PotItem()直接展开以提高效率！
@@ -170,7 +192,10 @@ static void _Refresh(struct _RP_AryArea *pArea,
 void _RefreshFocus(struct _RP_AryArea *pArea)
 {
   //图片做背景时，已经更新过了。
-  if(pArea->pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN) return;
+  if(pArea->pAryDesc->BitInfo & RP_ITEM_ICON_BG_FOCUS_EN){
+    pArea->PrvFocus = pArea->Focus; //更新了 
+    return;
+  }
   _Refresh(pArea, 1); //需单独更新
 }
 
@@ -196,10 +221,7 @@ void RP_AryArea_Init(struct _RP_AryArea *pArea,    //主结构
   pArea->Handle = Handle;  
   pArea->AryCount = AryCount;
   _ResetTimer(pArea);
-  pArea->PlotMask = 0xff; //刷新所有
-  _Refresh(pArea, 0); //更新页面
-  _RefreshFocus(pArea); //更新焦点
-
+  RP_AryArea_RefreshAll(pArea);//刷新所有
 }
 
 //--------------------------上翻页处理----------------------------
@@ -261,7 +283,8 @@ void RP_AryArea_Key(struct _RP_AryArea *pArea,
       //else 右键解释为下翻页键
     case 6: _PageDown(pArea, Count);break;//下翻页键    
     case 2: //上键
-      if((Focus >= RowCount) > 0) Focus -= RowCount; //向上1格
+      if(Focus >= RowCount) Focus -= RowCount; //向上1格
+      else if(!pArea->AryStart) return;//不允许上键回环到最后(对应最后下键不到开始)
       else{//上一页最后一排对应位置
         if(_PageUp(pArea, Count)){//翻页成功了
           Focus += Count - RowCount;
@@ -289,6 +312,14 @@ void RP_AryArea_Key(struct _RP_AryArea *pArea,
   if(PrvAryStart != pArea->AryStart){
     pArea->PlotMask = 0x7f; //刷新所有
     _Refresh(pArea, 0); //更新页面
+    //焦点(最末页)超限时修正
+    unsigned short EndPos = pArea->AryCount - pArea->AryStart;
+    if(Focus >= EndPos){
+      pArea->Focus = EndPos - 1; //最后一个
+      pArea->PrvFocus = pArea->Focus;//不更新上次
+      _Refresh(pArea, 1); //单独更新焦点
+      return;
+    }
     _RefreshFocus(pArea); //更新焦点
     return;
   }
@@ -327,7 +358,15 @@ void RP_AryArea_Task(struct _RP_AryArea *pArea)
     pArea->PlotMask = 0; //实时数据
     _Refresh(pArea, 0);  //需单独更新  
   }
-  
+}
+
+//-------------------------------刷新所有函数----------------------------
+//用于立即重建所有数据
+void RP_AryArea_RefreshAll(struct _RP_AryArea *pArea)
+{
+  pArea->PlotMask = 0xff; 
+  _Refresh(pArea, 0); //更新页面
+  _RefreshFocus(pArea); //更新焦点
 }
 
 

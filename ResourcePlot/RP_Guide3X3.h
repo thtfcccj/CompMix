@@ -115,6 +115,10 @@ void RP_Guide3X3_Init(struct _RP_Guide3X3 *pGuide,//确保Desc初始化
 //1s左右调用一次
 void RP_Guide3X3_Task(struct _RP_Guide3X3 *pGuide); 
 
+//-------------------------------刷新所有函数----------------------------
+//用于立即重建所有数据
+void RP_Guide3X3_RefreshAll(struct _RP_Guide3X3 *pGuide); 
+
 //-----------------------------按键处理函数----------------------------
 //GuideKey定义为: 确认0左1上2右3下4,及数字键'1'-'9'
 void RP_Guide3X3_Key(struct _RP_Guide3X3 *pGuide,
