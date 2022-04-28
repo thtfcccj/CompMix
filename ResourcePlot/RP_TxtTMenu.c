@@ -17,7 +17,7 @@
 //返回负异常
 signed char RP_TxtTMenuInit(unsigned char Rid)
 {
-  const unsigned char *pBase = RID_pGetData(TMenuBuf.Lut[0]);
+  const unsigned char *pBase = RID_pGetData(Rid);
   TMenuBuf.Para = (unsigned long)pBase; //存放基址
   TMenuBuf.Lut[0] = Rid; //RID  
   TMenuBuf.Lut[1] = 0;   //总页未更新
@@ -42,7 +42,7 @@ void RP_TxtTMenuNotify(unsigned char Type, void *pv)
     switch(pUser->Key){
       case TGUI_KEY_ESCAPE: //退出键
         pUser->Notify = TM_BUF_NOTIFY_EXIT_FLAG; 
-        break;
+        return;
       case TGUI_KEY_UP:
       case TGUI_KEY_LEFT: 
       case TGUI_KEY_PAGEUP: //均为上一页
@@ -51,9 +51,10 @@ void RP_TxtTMenuNotify(unsigned char Type, void *pv)
       case TGUI_KEY_DOWN:
       case TGUI_KEY_RIGHT: 
       case TGUI_KEY_PAGEDOWN: //均为下一页        
-        if(TMenuBuf.Lut[2] < TMenuBuf.Lut[1]) TMenuBuf.Lut[2]++;
+        if(TMenuBuf.Lut[2] < (TMenuBuf.Lut[1] - 1)) TMenuBuf.Lut[2]++;
         break;        
     }
+    pUser->Notify = TM_BUF_NOTIFY_DISP; //更新整屏显示
     return;
   }
   //更新显示缓冲区
