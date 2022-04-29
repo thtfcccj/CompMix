@@ -64,12 +64,12 @@ static void _Notify(unsigned char Type,//通报类型
     break;
   }
   case TM_NOTIFY_SET_DATA:{ //保存设定值
-    RTC_SetRTC(pUser->Value[0] -  - ZipTime_cbGetStartYear(),
-                       pUser->Value[1],
-                       pUser->Value[2],
-                       pUser->Value[3],
-                       pUser->Value[4],
-                       0);
+    RTC_SetRTC(pUser->Value[0],
+               pUser->Value[1],
+               pUser->Value[2],
+               pUser->Value[3],
+               pUser->Value[4],
+               0);
     /*unsigned long ZipTime = 
       ZipTime_FromTime(pUser->Value[0] - ZipTime_cbGetStartYear(),
                        pUser->Value[1],
