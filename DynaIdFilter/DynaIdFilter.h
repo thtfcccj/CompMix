@@ -29,7 +29,7 @@ struct _DynaIdFilter{
 //返回值由形参LutId决定：
 //最高位清零时， 表示筛选函数, 返回非0表示满足条件(必须实现此功能)
 //最高位置位时，表示获得最终阵列ID, 返回实际的阵列ID(填充查找表功能时支持,否则可不支持)
-typedef unsigned short (*_FilterFun)(unsigned short LutId,//最高位置位表示获得最终阵列ID
+typedef unsigned short (*DynaIdFilter_Fun)(unsigned short LutId,//最高位置位表示获得最终阵列ID
                                        unsigned long Para); //用户参数(可转换为指针)
 
 /************************************************************************
@@ -50,7 +50,7 @@ typedef unsigned short (*_FilterFun)(unsigned short LutId,//最高位置位表示获得最
 //MSB双字节方式填充查找表,查找表为NULL时返回-1表示未找到，NULL找到
 unsigned char* DynaIdFilter_Full(struct _DynaIdFilter *pFilter,//主结构
                                  unsigned short TblLen,     //查找表长度
-                                 const _FilterFun funFilter, //筛选函数,禁止为NULL
+                                 const DynaIdFilter_Fun funFilter, //筛选函数,禁止为NULL
                                  unsigned long Para,        //形参中可能带入的参数
                                  unsigned short PosOrId,    //读取位置或阵列ID
                                  unsigned char RdLen,       //读取长度

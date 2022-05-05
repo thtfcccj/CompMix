@@ -24,7 +24,7 @@
 //MSB双字节方式填充查找表,查找表为NULL时返回-1表示未找到，NULL找到
 unsigned char* DynaIdFilter_Full(struct _DynaIdFilter *pFilter,//主结构
                                  unsigned short TblLen,     //查找表长度
-                                 const _FilterFun funFilter, //筛选函数,禁止为NULL
+                                 const DynaIdFilter_Fun funFilter, //筛选函数,禁止为NULL
                                  unsigned long Para,        //形参中可能带入的参数
                                  unsigned short PosOrId,    //读取位置或阵列ID
                                  unsigned char RdLen,       //读取长度
