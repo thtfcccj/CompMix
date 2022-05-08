@@ -28,7 +28,7 @@ struct _RpProgressDesc{
   unsigned short h;          //总高度，高4bit: 上下边框高度
   Color_t cBg;                //底色
   Color_t cRect;              //边框色
-  Color_t cFg[4];             //填充色,可由参数带入，选择4种色中的一种
+  Color_t cFg[5];             //填充色,可由参数带入，选择4种色中的一种(下标4为超限)
 };
 //通过回调获得的参数结构：
 struct _RpProgressPara{

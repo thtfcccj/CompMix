@@ -17,8 +17,8 @@ void RpTools_PlotProgress(const union _RpToolsDesc *pNsDesc,
 {
   unsigned short w = pNsDesc->Progress.w & 0x0fff;
   unsigned short h = pNsDesc->Progress.h & 0x0fff; 
-  unsigned short cw = (pNsDesc->Progress.w >> 12) + 1;
-  unsigned short ch = (pNsDesc->Progress.h >> 12) + 1;
+  unsigned short cw = (pNsDesc->Progress.w >> 12) + 1;//边框宽度
+  unsigned short ch = (pNsDesc->Progress.h >> 12) + 1;//边框高度
   
    //不是实时刷新时，画边框  
   Color_t PrvBg = Plot_GetBrushColor(); //用后需恢复
@@ -34,18 +34,20 @@ void RpTools_PlotProgress(const union _RpToolsDesc *pNsDesc,
   w -= cw * 2;
   y += ch;
   h -= ch * 2;
-  Plot_SetBrushColor(pNsDesc->Progress.cFg[pNsPara->Progress.FgId & 0x03]);//前景
+  Plot_SetBrushColor(pNsDesc->Progress.cFg[pNsPara->Progress.FgId & 0x07]);//前景
+  //得到百分比值
+  cw = pNsPara->Progress.Percent;
+  if(cw > 100) cw = 100;//超限了  
   if(Info & 0x10){//纵向进度条
-    ch = pNsPara->Progress.Percent * 100 / h;
+    ch = ((unsigned short)cw * h) / 100;
     if(ch > 100) ch = 100;//超限了
     Plot_FullRect(x, y + h - ch, w, ch); //进度
     Plot_SetBrushColor(pNsDesc->Progress.cBg);//进度条后的背景
     Plot_FullRect(x, y, w, h - ch); //进度
   }
-  else{//横向进度条
-    cw = pNsPara->Progress.Percent * 100 / w;
-    if(cw > 100) cw = 100;//超限了
-    Plot_FullRect(x, y, cw, ch); //进度
+  else{//横向进度条  
+    cw = ((unsigned short)cw * w) / 100;
+    Plot_FullRect(x, y, cw, h); //进度
     Plot_SetBrushColor(pNsDesc->Progress.cBg);//进度条后的背景
     Plot_FullRect(x + cw, y, w - cw, h); //进度
   }
