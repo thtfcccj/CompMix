@@ -39,6 +39,12 @@
 #define ZIP_TIME_DATT_SHIFT     ZIP_TIME_DATE_SHIFT
 #define ZIP_TIME_DATT_MASK    (ZIP_TIME_DATE_MASK | ZIP_TIME_MOUTH_MASK | ZIP_TIME_YEAR_MASK)
 
+
+//定义年表示最大表示范围，菜单或外部使用
+#ifndef ZIP_TIME_YEAR_MAX
+  #define ZIP_TIME_YEAR_MAX  ZIP_TIME_YEAR_COUNT //默认最大
+#endif
+
 extern unsigned long RtcZipTime; //当前实时时间
 
 /************************************************************************

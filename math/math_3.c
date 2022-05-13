@@ -171,6 +171,16 @@ void LsbS2Full(unsigned short Data,unsigned char *pData)
   *pData = Data;
 }
 
+//----------------------short型数,以LSB方式填充函数-------------------
+//返回下个填充位置
+unsigned char *pLsbS2Full(unsigned short Data,unsigned char *pData)
+{
+  *pData++ = Data;
+  Data >>= 8;
+  *pData++ = Data;  
+  return pData;
+}
+
 //--------------------LSB方式数据转换为short型数函数--------------------
 unsigned short LsbFull2S(const unsigned char *pData)
 {
