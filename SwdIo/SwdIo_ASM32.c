@@ -46,6 +46,8 @@ void SwdIo_ToSwd(void)
   RCC->REGLOCK = RCC_RESGLOCKKEY;
   //ÅäÖÃ»ØÊäÈëÄ£Ê½·ÀÖ¹ËÀËø
   GPIOC->DIR &= ~(1 << 7); GPIOD->DIR &= ~(1 << 1);
+  GPIOC->AFR &= ~((unsigned long)0x0f << (7 * 4)); 
+  GPIOD->AFR &= ~((unsigned long)0x0f << (1 * 4)); 
 }
 #endif
 
