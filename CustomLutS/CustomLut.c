@@ -5,6 +5,7 @@
 ***********************************************************************/
 
 #include "CustomLut.h"
+#ifndef SUPPORT_DIS_CUSTOM_LUT //不需要此模块时
 
 #include "InfoBase.h"
 #include "Eeprom.h"
@@ -237,4 +238,6 @@ void CustomLut_Restore(void)
             &CustomLut,
             sizeof(CustomLut));
 }
+
+#endif //#ifndef SUPPORT_DIS_CUSTOM_LUT
 
