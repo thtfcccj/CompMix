@@ -68,6 +68,10 @@ void LsbS2Full(unsigned short Data,unsigned char *pData);
 //----------------------short型数,以MSB方式填充函数-------------------
 //返回下个填充位置
 unsigned char *pLsbS2Full(unsigned short Data,unsigned char *pData);
+                            
+//----------------------lonng 型数两位填充,以MSB方式填充函数-------------------
+//超限填充超限值，返回下个填充位置
+unsigned char *pMsbS2FullOV(unsigned long Data,unsigned char *pData);
 
 //--------------------LSB方式数据转换为short型数函数--------------------
 unsigned short LsbFull2S(const unsigned char *pData);

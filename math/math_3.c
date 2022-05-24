@@ -227,6 +227,17 @@ unsigned char *pMsbS2Full(unsigned short Data,unsigned char *pData)
   return pData;
 }
 
+//----------------------lonng 型数两位填充,以MSB方式填充函数-------------------
+//超限填充超限值，返回下个填充位置
+unsigned char *pMsbS2FullOV(unsigned long Data,unsigned char *pData)
+{
+  if(Data > 0xffff) Data = 0xffff;
+  //为保证对齐，没有用memcpy;
+  *pData++ = (unsigned char)(Data >> 8);
+  *pData++ = (unsigned char)(Data);
+  return pData;
+}
+
 //----------------------short型数组,以MSB方式填充函数-------------------
 //返回填充结束位置
 unsigned char * pMsbS2FullAry(const unsigned short *psData,
