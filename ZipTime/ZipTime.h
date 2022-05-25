@@ -64,6 +64,10 @@ unsigned long ZipTime_FromTime(unsigned char RelativeYear, //相对起始年,0-63
 //Pos定义为返回信息:相对年0,月1,日2,时3,分4,秒5
 unsigned char ZipTime_GetInfo(unsigned char Pos, unsigned long ZipTime);
 
+//-----------------------------得到日期-----------------------------
+//日0-4b,月5-8b,年9-15b以2000年为基准
+unsigned short ZipTime_GetDate(unsigned long ZipTime);                                  
+                   
 //--------------------------压缩时间格式转为数据流-------------------------
 //数据流固定年在最前，秒在最后
 void ZipTime_ToData(unsigned long ZipTime, unsigned char *pBuf);
