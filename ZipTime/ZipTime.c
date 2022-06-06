@@ -52,6 +52,16 @@ unsigned short ZipTime_GetDate(unsigned long ZipTime)
   return Date + ((unsigned short)(YEAR_START - 2000) << 9);
 }  
 
+//-------------------由ZipTime_GetDate()日期得压缩时间-----------------
+//将以2000年为基准的年,转换为本地年基准,时间填充0
+unsigned long ZipTime_Date2Zip(unsigned short Date)
+{
+  unsigned long ZipTime = 
+    (unsigned long)((Date >> 9) - (YEAR_START - 2000)) << ZIP_TIME_YEAR_SHIFT;
+  ZipTime |= (unsigned long)(Date & 0x1ff) << ZIP_TIME_DATE_SHIFT;
+  return ZipTime;
+}
+
 //--------------------------压缩时间格式转为数据流-------------------------
 //数据流固定年在最前，秒在最后
 void ZipTime_ToData(unsigned long ZipTime, unsigned char *pBuf)

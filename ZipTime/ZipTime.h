@@ -66,7 +66,11 @@ unsigned char ZipTime_GetInfo(unsigned char Pos, unsigned long ZipTime);
 
 //-----------------------------得到日期-----------------------------
 //日0-4b,月5-8b,年9-15b以2000年为基准
-unsigned short ZipTime_GetDate(unsigned long ZipTime);                                  
+unsigned short ZipTime_GetDate(unsigned long ZipTime); 
+
+//-------------------由ZipTime_GetDate()日期得压缩时间-----------------
+//将以2000年为基准的年,转换为本地年基准,时间填充0
+unsigned long ZipTime_Date2Zip(unsigned short Date);
                    
 //--------------------------压缩时间格式转为数据流-------------------------
 //数据流固定年在最前，秒在最后

@@ -233,7 +233,7 @@ static signed char _PageUp(struct _RP_AryArea *pArea,
   
   if(pArea->AryStart >= Count) pArea->AryStart -= Count;
   else//回环到最后一页
-    pArea->AryStart = (pArea->AryCount / Count) * Count;
+    pArea->AryStart = ((pArea->AryCount - 1) / Count) * Count;
   return 1;
 }               
 
