@@ -195,17 +195,23 @@ signed char HourIncFlash_128TickTask(void)
 }
 
 //------------------------------校准函数-------------------------------------
-//HourIncFlash_HaveCalibration()时可调用, 默认一般1小时左右
+//HourIncFlash_HaveCalibration()时可调用, 0时复位默认，建议1小时左右校正
 #ifdef SUPPORT_HOUR_INC_FLASH_CAL
 void HourIncFlash_Calibration(unsigned short Sec) //秒为单位
 {
-  if(HourIncFlash.HourCalibrationOV == 0) return; //过了时间点了
-  //将Sec归一化至1小时以与基对应
-  unsigned short ToHourTimer  = 0xffff - HourIncFlash.HourCalibrationOV;
-  unsigned long Data = ((unsigned  long)3600 << 10) / Sec;
-  ToHourTimer = (Data * ToHourTimer) >> 10;
-  //值太小，时间不够  
-  if(ToHourTimer < (HOUR_INC_FLASH_TO_HOUR_DEFAULT / 60)) return;
+  unsigned short ToHourTimer;
+  if(Sec == 0){//复位到默认值
+    ToHourTimer = HOUR_INC_FLASH_TO_HOUR_DEFAULT;
+  }
+  else{
+    if(HourIncFlash.HourCalibrationOV == 0) return; //过了时间点了
+    //将Sec归一化至1小时以与基对应
+    ToHourTimer  = 0xffff - HourIncFlash.HourCalibrationOV;
+    unsigned long Data = ((unsigned  long)3600 << 10) / Sec;
+    ToHourTimer = (Data * ToHourTimer) >> 10;
+    //值太小，时间不够  
+    if(ToHourTimer < (HOUR_INC_FLASH_TO_HOUR_DEFAULT / 60)) return;
+  }
   HourIncFlash.Info.ToHourCount = ToHourTimer;
   Eeprom_Wr(HourIncFlash_GetInfoBase(),
            &HourIncFlash,
@@ -246,6 +252,18 @@ signed long HourIncFlash_GetAddHour(unsigned long AbsHour)
   return CurAbsHour - AbsHour;
 }
 
+//-------------------------得到开机秒数--------------------------
+//最大18小时
+#if (HOUR_INC_FLASH_TO_HOUR_OV > 1)//1小时以下计数时
+
+unsigned short HourIncFlash_GetOnSec(void)
+{
+  unsigned short OnSec = HourIncFlash.OnHour;
+  if(OnSec >= 18) return 18 * 3600;
+  return  OnSec * 3600 + HourIncFlash_GetSecInHour();
+}
+#endif
+
 //----------------------------------得到小时中的秒数--------------------------
 #if (HOUR_INC_FLASH_TO_HOUR_OV > 1)//1小时以下计数时
 unsigned short HourIncFlash_GetSecInHour(void)
@@ -253,5 +271,8 @@ unsigned short HourIncFlash_GetSecInHour(void)
   return ((unsigned long)HourIncFlash.ToHourTimer * 3600) / HourIncFlash_GetHourCount();
 }
 #endif
+
+
+
 
 

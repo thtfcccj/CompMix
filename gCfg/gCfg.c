@@ -53,7 +53,7 @@ void gCfg_CfgBit(unsigned char Pos,    //位置下标
 
 //-------------------------------设置通用字节数据并保存----------------------
 void gCfg_CfgData(unsigned char Pos,
-                       unsigned char Byte)
+                  unsigned char Byte)
 {
   gCfg.Byte[Pos] = Byte;
   //保存
