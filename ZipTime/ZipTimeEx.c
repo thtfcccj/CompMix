@@ -11,22 +11,21 @@ static const unsigned char _MonthToDay[] = {
 };
 
 //--------------------------得到减去标准日期的天数------------------------------
-//即给定日期距标准日期: 2000.1.1 00:00:00的天数,时间略掉
+//即给定日期距标准日期: YEAR_START.1.1 00:00:00的天数,时间略掉
 static unsigned short _SubStdDay(unsigned long ZipTime)
 {
   unsigned short Day;
   //提到整年的天数
   unsigned short Year = (unsigned char)(ZipTime >> ZIP_TIME_YEAR_SHIFT);
-  Year += (YEAR_START - 2000);
   Day = Year * 365;
-  //加上闰年天数,当年不算,2000年是闰年
-  if(Year) Day  += ((Year - 1) / 4) + 1; 
+  //加上闰年天数(非准确算法)
+  Day += (Year + (YEAR_START % 4)) / 4;
   //得到整月的天数,当月不算
   unsigned short Mon = (unsigned char)((ZipTime & ZIP_TIME_MOUTH_MASK) >> ZIP_TIME_MOUTH_SHIFT);
   if(Mon > 1){
     Mon--;
     if(Mon >= 2){//2月份检查闰月,是则先加1天
-      if(!(Year % 4)) Day++;
+      if(((Year + (YEAR_START % 4)) % 4) == 0) Day++;
     }
     //整月天数
     for( ;Mon > 0; Mon--) Day += _MonthToDay[Mon];
@@ -37,14 +36,14 @@ static unsigned short _SubStdDay(unsigned long ZipTime)
 }
 
 //--------------------------得到加上标准日期的天数------------------------------
-//即给定日期距标准日期: 如：2000.1.1 00:00:00的天数,时间略掉
+//即给定日期距标准日期: YEAR_START.1.1 00:00:00的天数,时间略掉
 static unsigned long _AddStdDay(unsigned short Day)
 {
   //得到整年的天数
-  unsigned char Year = 0;
+  volatile unsigned char Year = 0;
   for(; Year < ZIP_TIME_YEAR_COUNT; Year++){
     unsigned short YearDay;//整年的天数
-    if(!(Year % 4)) YearDay = 366;
+    if(((Year + (YEAR_START % 4)) % 4) == 0) YearDay = 366;
     else YearDay = 365;
     if(Day >= YearDay) Day -= YearDay;
     else break;
@@ -59,7 +58,7 @@ static unsigned long _AddStdDay(unsigned short Day)
     }
     if(Day >= MonDay) Day -= MonDay;
     else break;
-  }    
+  }
   unsigned long ZipTime = (unsigned long)Year << ZIP_TIME_YEAR_SHIFT;
   ZipTime |= ((unsigned long)Mon) << ZIP_TIME_MOUTH_SHIFT;  
   ZipTime |= ((unsigned long)Day) << ZIP_TIME_DATE_SHIFT; 
