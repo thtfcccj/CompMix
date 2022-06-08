@@ -72,9 +72,7 @@ void RP_PaintPara(unsigned long Handle,const struct _RpParaDesc *pDesc,
     unsigned char FontInfo = ((pDesc->Para & 0x0C) << 2);//对齐方式
     if(pDesc->Para & RP_PARA_FONT_MUTI2) FontInfo += 2;//两倍放大
     else FontInfo += 1;//1倍放大
-    unsigned char MaxLen;
-    if(FontInfo & 0x30) MaxLen = RP_cbGetStrMaxLen(Handle,ParaId);
-    else MaxLen = 0;
+    unsigned char MaxLen = RP_cbGetStrMaxLen(Handle,ParaId);
     
     //仅支持半角字体选择
     unsigned char fFontId = pDesc->Para & RP_PARA_FONT_MASK;
