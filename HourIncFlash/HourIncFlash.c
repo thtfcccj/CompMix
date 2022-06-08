@@ -216,8 +216,12 @@ void HourIncFlash_Calibration(unsigned short Sec) //秒为单位
   Eeprom_Wr(HourIncFlash_GetInfoBase(),
            &HourIncFlash,
            sizeof(struct _HourIncFlashInfo));
-  HourIncFlash.HourCalibrationOV = 0xffff;//可重新执行校准
-  HourIncFlash.ToHourTimer = ToHourTimer;//任务时执行加1小时
+  //转换为正确的时间
+  //注：这里HourIncFlash.HourCalibrationOV不能复位，即仅在开机几小时能校准
+  //    校准后的HourIncFlash.OnHour与写入FLASH的小时数可能对不上，也只能这样了。
+  HourIncFlash.OnHour = Sec / 3600;
+  HourIncFlash.ToHourTimer = //秒需转换为计数值
+  ((unsigned long)Sec * ToHourTimer) / 3600;
 }
 #endif
 
