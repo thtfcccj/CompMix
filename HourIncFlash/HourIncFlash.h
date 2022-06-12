@@ -151,7 +151,7 @@ signed char HourIncFlash_128TickTask(void);
 #endif
 
 //------------------------------校准函数-------------------------------------
-//HourIncFlash_HaveCalibration()时可调用, 默认一般1小时左右
+//HourIncFlash_HaveCalibration()时可调用, 0时复位默认，建议1小时左右校正
 #ifdef SUPPORT_HOUR_INC_FLASH_CAL
 void HourIncFlash_Calibration(unsigned short Sec); //秒为单位
 #elif !defined(HourIncFlash_Calibration) //允许外部实现
@@ -182,6 +182,14 @@ signed long HourIncFlash_GetAddHour(unsigned long AbsHour);
 
 //----------------------------得到累加小时中的小时数---------------------------
 #define HourIncFlash_GetHour(absHour)  (HourIncFlash_GetAddHour(absHour) % 24)
+
+//-------------------------得到开机秒数--------------------------
+//可用于校准时间精准度，最大18小时
+#if (HOUR_INC_FLASH_TO_HOUR_OV > 1)//1小时以下计数时
+  unsigned short HourIncFlash_GetOnSec(void);
+#else
+  #define HourIncFlash_GetOnSec() 0 //不支持时为0
+#endif
 
 //----------------------------------得到小时中的秒数--------------------------
 #if (HOUR_INC_FLASH_TO_HOUR_OV > 1)//1小时以下计数时
