@@ -7,7 +7,7 @@
 #ifndef _SWD_IO_H
 #define	_SWD_IO_H
 #ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
-  #include "Preinclude.h"   //__DEBUG
+  #include "Preinclude.h"   //_APP_DEBUG
 #endif
 
 /***********************************************************************
@@ -37,7 +37,7 @@
 
 //---------------------SWD口配置为普通IO-------------------------------
 //配置为IO模式, 应在初始化时优先调用，建议此
-#ifndef __DEBUG   //正常工作时
+#ifndef _APP_DEBUG   //正常工作时
   void SwdIo_ToIo(void); 
 #else  //调试模式无效
   #define SwdIo_ToIo() do{}while(0)
@@ -45,7 +45,7 @@
 
 //---------------------SWD配置为普通IO后置输出0-------------------
 //应在初始化时调用SwdIo_ToIo()后，若口不用,调用此函数配置回输出0模式
-#ifndef __DEBUG  //正常工作时
+#ifndef _APP_DEBUG  //正常工作时
   void SwdIo_IoOut0(void); 
 #else  //调试模式无效
   #define SwdIo_IoOut0() do{}while(0)
@@ -53,7 +53,7 @@
 
 //-------------------------------配置回SWD模式---------------------------
 //同时将SWD口配置为输入模式以用于SWD接入
-#ifndef __DEBUG //正常工作时  
+#ifndef _APP_DEBUG //正常工作时  
   void SwdIo_ToSwd(void);
 #else  //调试模式无效
   #define SwdIo_ToSwd() do{}while(0)
