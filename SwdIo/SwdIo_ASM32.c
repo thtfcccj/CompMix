@@ -16,7 +16,7 @@
 ***********************************************************************/
 
 //---------------------SWD口配置为普通IO-------------------------------
-#ifndef __DEBUG   //正常工作时
+#ifndef _APP_DEBUG   //正常工作时
 void SwdIo_ToIo(void)
 {
   RCC->REGLOCK = RCC_REGLOCKKEY;
@@ -26,7 +26,7 @@ void SwdIo_ToIo(void)
 #endif  
 
 //---------------------SWD配置为普通IO后置输出0-------------------
-#ifndef __DEBUG   //正常工作时
+#ifndef _APP_DEBUG   //正常工作时
 //应在初始化时调用SwdIo_ToIo()后，若口不用,调用此函数配置回输出0模式
 void SwdIo_IoOut0(void)
 {
@@ -37,7 +37,7 @@ void SwdIo_IoOut0(void)
 #endif
 
 //-------------------------------配置回SWD模式---------------------------
-#ifndef __DEBUG   //正常工作时
+#ifndef _APP_DEBUG   //正常工作时
 //同时将SWD口配置为输入模式以用于SWD接入
 void SwdIo_ToSwd(void)
 {
