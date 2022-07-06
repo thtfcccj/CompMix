@@ -17,36 +17,41 @@ void RpTools_PlotProgress(const union _RpToolsDesc *pNsDesc,
 {
   unsigned short w = pNsDesc->Progress.w & 0x0fff;
   unsigned short h = pNsDesc->Progress.h & 0x0fff; 
-  unsigned short cw = (pNsDesc->Progress.w >> 12) + 1;//边框宽度
-  unsigned short ch = (pNsDesc->Progress.h >> 12) + 1;//边框高度
-  
-   //不是实时刷新时，画边框  
+  unsigned short cw,ch;//边框宽高
   Color_t PrvBg = Plot_GetBrushColor(); //用后需恢复
-  if(!(Info & 0x80) && (pNsDesc->Progress.cBg != pNsDesc->Progress.cRect)){
-    Plot_SetBrushColor(pNsDesc->Progress.cRect);
-    Plot_FullRect(x,y, cw, h);// 左|
-    Plot_FullRect(x,y, w, ch);// 上-
-    Plot_FullRect(x+w-cw, y, cw, h);// 右|
-    Plot_FullRect(x,y+h-ch, w, ch); // 下-
+  if(pNsDesc->Progress.cBg != pNsDesc->Progress.cRect){//有边框时
+    unsigned short cw = (pNsDesc->Progress.w >> 12) + 1;//边框宽度
+    x += cw;
+    w -= cw * 2;   
+    unsigned short ch = (pNsDesc->Progress.h >> 12) + 1;//边框高度
+    y += ch;
+    h -= ch * 2;   
+    if(!(Info & 0x80)){//不是实时刷新时，画边框
+      Plot_SetBrushColor(pNsDesc->Progress.cRect);
+      Plot_FullRect(x,y, cw, h);// 左|
+      Plot_FullRect(x,y, w, ch);// 上-
+      Plot_FullRect(x+w-cw, y, cw, h);// 右|
+      Plot_FullRect(x,y+h-ch, w, ch); // 下-
+    }
   }
-  //填充进度条
-  x += cw;
-  w -= cw * 2;
-  y += ch;
-  h -= ch * 2;
+  else{//无边框
+    cw = 0; 
+    ch = 0;
+  }
+  
   Plot_SetBrushColor(pNsDesc->Progress.cFg[pNsPara->Progress.FgId & 0x07]);//前景
   //得到百分比值
   cw = pNsPara->Progress.Percent;
   if(cw > 100) cw = 100;//超限了  
   if(Info & 0x10){//纵向进度条
-    ch = ((unsigned short)cw * h) / 100;
+    ch = (cw * h) / 100;
     if(ch > 100) ch = 100;//超限了
     Plot_FullRect(x, y + h - ch, w, ch); //进度
     Plot_SetBrushColor(pNsDesc->Progress.cBg);//进度条后的背景
     Plot_FullRect(x, y, w, h - ch); //进度
   }
   else{//横向进度条  
-    cw = ((unsigned short)cw * w) / 100;
+    cw = (cw * w) / 100;
     Plot_FullRect(x, y, cw, h); //进度
     Plot_SetBrushColor(pNsDesc->Progress.cBg);//进度条后的背景
     Plot_FullRect(x + cw, y, w - cw, h); //进度
