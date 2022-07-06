@@ -73,12 +73,12 @@ void HourIncFlash_Init(unsigned char IsInited)
   if(!IsInited){//装载默认
     memcpy(&HourIncFlash, &_InfoDefault, sizeof(struct _HourIncFlashInfo));
     Eeprom_Wr(HourIncFlash_GetInfoBase(),
-              &HourIncFlash,
+              &HourIncFlash.Info,
               sizeof(struct _HourIncFlashInfo));
   }
   else{
     Eeprom_Rd(HourIncFlash_GetInfoBase(),
-                &HourIncFlash,
+                &HourIncFlash.Info,
                 sizeof(struct _HourIncFlashInfo));
   }
   //读取当前位置等信息
@@ -214,7 +214,7 @@ void HourIncFlash_Calibration(unsigned short Sec) //秒为单位
   }
   HourIncFlash.Info.ToHourCount = ToHourTimer;
   Eeprom_Wr(HourIncFlash_GetInfoBase(),
-           &HourIncFlash,
+           &HourIncFlash.Info,
            sizeof(struct _HourIncFlashInfo));
   //转换为正确的时间
   //注：这里HourIncFlash.HourCalibrationOV不能复位，即仅在开机几小时能校准
