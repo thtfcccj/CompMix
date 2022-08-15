@@ -122,5 +122,10 @@ unsigned char Asc2Byte(unsigned char H, unsigned char L);
 //³¬¹ý255·µ»Ø255
 unsigned char Us2ByteFull(unsigned short Data);
                            
+//------------------------------BCD×ª»»-----------------------------
+unsigned char Bcd2Data(unsigned char BCD);
+unsigned char Data2Bcd(unsigned char Data);
+
+
 #endif
 

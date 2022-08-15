@@ -323,4 +323,13 @@ unsigned char Us2ByteFull(unsigned short Data)
   return 255;
 }
 
+//------------------------------BCD×ª»»-----------------------------
+unsigned char Bcd2Data(unsigned char BCD)
+{
+  return (((BCD >> 4)) * 10) + (BCD & 0x0f);
+}
+unsigned char Data2Bcd(unsigned char Data)
+{
+  return ((Data / 10) << 4) | (Data % 10);
+}
 
