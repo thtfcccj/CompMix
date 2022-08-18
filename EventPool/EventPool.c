@@ -41,25 +41,23 @@ signed char EventPool_Wr(struct _EventPool *pEventPool,
   unsigned char EventSize = pEventPool->EventSize;  
   
   //有待读取的事件时，未读取部分还未读走，此区域自产自消就行了。
-  if(pEventPool->WrPos > pEventPool->RdPos){
-    unsigned char Id = pEventPool->Id;
-    unsigned char *pStart = pEventPool->pData + pEventPool->RdPos * EventSize;
-    //不是取消正在写入的事件时，直接自生自消了
-    if(EventPool_cbIsCancel(Id, pEvent) && 
-       !EventPool_cbIsSame(Id, pEvent, pStart)){
-      unsigned char *pWr = pStart;//起始位置
-      unsigned char *pEnd = pEventPool->pData + pEventPool->WrPos * EventSize;    
-      for(; pStart < pEnd; pStart += EventSize){
-        if(EventPool_cbIsSame(Id, pEvent, pStart)) continue; //相同时取消了即不动
-        //不是当前事件时往前移
-        memcpy(pWr, pStart, EventSize);
-        *pWr += EventSize;
-      }
-      unsigned short CancelCount = (pEnd - pWr) / EventSize;
-      if(CancelCount){
-        pEventPool->WrPos -= CancelCount;//已自产自消了
-        return 0;
-      }
+  //正在写入的事件有可能消费者已收到了，故不参与
+  unsigned char RdEndPos = pEventPool->RdPos + 1;
+  unsigned char Id = pEventPool->Id;
+  if((pEventPool->WrPos > RdEndPos) && (EventPool_cbIsCancel(Id, pEvent))){
+    unsigned char *pStart = pEventPool->pData + RdEndPos * EventSize;
+    unsigned char *pWr = pStart;//起始位置
+    unsigned char *pEnd = pEventPool->pData + pEventPool->WrPos * EventSize; 
+    for(; pStart < pEnd; pStart += EventSize){
+      if(EventPool_cbIsSame(Id, pEvent, pStart)) continue; //相同时取消了即不动
+      //不是当前事件时往前移
+      memcpy(pWr, pStart, EventSize);
+      *pWr += EventSize;
+    }
+    unsigned short CancelCount = (pEnd - pWr) / EventSize;
+    if(CancelCount){
+      pEventPool->WrPos -= CancelCount;//已自产自消了
+      return 0;
     }
   }
   //插入一条事件
@@ -97,26 +95,27 @@ void EventPool_RdFinal(struct _EventPool *pEventPool)
   unsigned char EventSize = pEventPool->EventSize;  
   unsigned char *pStart = pEventPool->pData;
   //当前事件
-  const unsigned char *pEvent = pStart + pEventPool->RdPos * EventSize;
+  const unsigned char *pCurEvent = pStart + pEventPool->RdPos * EventSize;
+  pEventPool->RdPos++;  //本次已发送完成，指向下一位置  
   unsigned char Id = pEventPool->Id;
+
   //不是取消事件时无处理！
-  if(!EventPool_cbIsCancel(Id, pEvent)){
-    pEventPool->RdPos++;  //指向下一位置
+  if(!EventPool_cbIsCancel(Id, pCurEvent)){
     return;
   }
   //为待取消事件时,将与此事件相关的事件全部取消了(含自身)
   unsigned char *pWr = pStart;//写位置  
-  const unsigned char *pEnd = pEvent; //自身位置(含)即结束
-  for(; pStart <= pEnd; pStart += EventSize){//含自身
-    if(EventPool_cbIsSame(Id, pEvent, pStart)) continue; //相同时取消了即不动
+  const unsigned char *pEnd = pCurEvent + EventSize; //结束位置(不含)
+  for(; pStart < pEnd; pStart += EventSize){
+    if(EventPool_cbIsSame(Id, pCurEvent, pStart)) continue; //相同时取消了即不动
     //不是当前事件时往前移
     memcpy(pWr, pStart, EventSize);
-    *pWr += EventSize;
+    pWr += EventSize;
   }
   unsigned short CancelCount = (pEnd - pWr) / EventSize; //已取消数量
   //未告知消费者的那部分，往前移
   if(CancelCount){
-    memcpy(pWr, pEvent + EventSize, 
+    memcpy(pWr, pCurEvent + EventSize, 
            (pEventPool->WrPos - pEventPool->RdPos) * EventSize); 
   }
   pEventPool->RdPos -= CancelCount;//已读事件减小了

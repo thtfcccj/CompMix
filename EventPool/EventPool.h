@@ -80,7 +80,7 @@ unsigned char EventPool_cbIsCancel(unsigned char Id,
                                     const unsigned char *pEvent);
 
 //------------------------------是否为相同事件----------------------------------
-//0相同，1不相同
+//1相同，0不相同
 signed char EventPool_cbIsSame(unsigned char Id,
                                 const unsigned char *pEvent0,
                                 const unsigned char *pEvent1);
