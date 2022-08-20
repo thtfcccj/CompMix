@@ -355,6 +355,16 @@ unsigned char Us2ByteFull(unsigned short Data)
   return 255;
 }
 
+//------------------------------BCD转换-----------------------------
+unsigned char Bcd2Data(unsigned char BCD)
+{
+  return (((BCD >> 4)) * 10) + (BCD & 0x0f);
+}
+unsigned char Data2Bcd(unsigned char Data)
+{
+  return ((Data / 10) << 4) | (Data % 10);
+}
+
 //----------------------双字节型内存设置-------------------------------
 void memset2(unsigned short *pDest,
              unsigned short Data,
@@ -376,6 +386,5 @@ signed short AverageS2(signed short *pData, unsigned short Size)
   }  
   return Count / Size;
 }
-
 
 

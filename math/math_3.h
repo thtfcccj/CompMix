@@ -141,6 +141,10 @@ unsigned char Asc2Byte(unsigned char H, unsigned char L);
 //----------------------双字转字节防溢出处理-------------------------------
 //超过255返回255
 unsigned char Us2ByteFull(unsigned short Data);
+          
+//------------------------------BCD转换-----------------------------
+unsigned char Bcd2Data(unsigned char BCD);
+unsigned char Data2Bcd(unsigned char Data);
                            
 //----------------------双字节型内存copy-------------------------------
 void memcpy2(unsigned short *pDest,
@@ -155,7 +159,6 @@ void memset2(unsigned short *pDest,
 //----------------------Signed short求平均-------------------------------
 //返回平均后的值
 signed short AverageS2(signed short *pData, unsigned short Size);
-             
-                           
+
 #endif
 
