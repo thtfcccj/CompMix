@@ -114,8 +114,40 @@ unsigned short Line_GetYInZeroMutiSU(unsigned short xz,  //直线穿过y轴的x值
   if(x >= xz){//点位于y轴右侧
     return (signed short)((lData * (x - xz)) >> MutiQ);
   }
-  ////点位于y轴左侧,为负了
+  //点位于y轴左侧,为负了
   return 0;
+}
+
+//---------------unsigned short型数,求穿过直线上的点x坐标函数------------
+//直线表示为:斜率和穿过y轴的x值,
+//未知点落在直线上但仅知y坐标,求x坐标
+//注1.因斜率不表示负值,故仅能计算上升沿趋势线,下降沿可通过映向x轴实现
+//注2:若点位于y轴左测,则返回为0
+unsigned short Line_GetXInZeroMutiSU(unsigned short xz,  //直线穿过y轴的x值
+                                     unsigned short Muti,//斜率
+                                     unsigned short MutiQ,//斜率的Q值
+                                     unsigned short y)  //未知x点的y坐标
+{
+  unsigned long lData = (unsigned long)y << MutiQ;
+  lData /= Muti;
+  lData += xz;
+  if(lData > 0xffff) return 0xffff;
+  return lData;
+}
+
+//---------------unsigned short型数,求穿过直线上的点x坐标函数------------
+//直线表示为:斜率和穿过y轴的x值,
+//未知点落在直线上但仅知y坐标,求x坐标
+//注1.因斜率不表示负值,故仅能计算上升沿趋势线,下降沿可通过映向x轴实现
+//注2:若点位于y轴左测,则返回为0
+signed short Line_GetXzInZeroMutiSU(unsigned short x,  //x值
+                                     unsigned short Muti,//斜率
+                                     unsigned short MutiQ,//斜率的Q值
+                                     unsigned short y)  //x对应的点y坐标
+{
+  unsigned long lData = (unsigned long)y << MutiQ;
+  lData /= Muti;
+  return x - lData;
 }
 
 //---------------unsigned short型数,求穿过直线上的点y坐标函数------------
@@ -132,7 +164,7 @@ signed short Line_GetYInZeroMutiSS(unsigned short xz,  //直线穿过y轴的x值
   if(x >= xz){//点位于y轴右侧
     return (signed short)((lData * (x - xz)) >> MutiQ);
   }
-  ////点位于y轴左侧,为负了
+  //点位于y轴左侧,为负了
   return (signed short)0 - ((lData * (xz - x)) >> MutiQ);
 }
 
@@ -322,5 +354,28 @@ unsigned char Us2ByteFull(unsigned short Data)
   if(Data <= 255) return Data;
   return 255;
 }
+
+//----------------------双字节型内存设置-------------------------------
+void memset2(unsigned short *pDest,
+             unsigned short Data,
+             unsigned long Size) //双字节型大小        
+{
+  for(; Size > 0; Size--){
+    *pDest++ = Data;
+  }
+}            
+       
+//----------------------Signed short求平均-------------------------------
+//返回平均后的值
+signed short AverageS2(signed short *pData, unsigned short Size)
+{
+  signed long Count = 0;
+  signed short *pEndData = pData + Size;
+  for(; pData < pEndData; pData++){
+    Count += *pData;
+  }  
+  return Count / Size;
+}
+
 
 
