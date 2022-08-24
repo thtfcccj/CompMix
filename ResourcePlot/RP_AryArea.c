@@ -369,4 +369,19 @@ void RP_AryArea_RefreshAll(struct _RP_AryArea *pArea)
   _RefreshFocus(pArea); //更新焦点
 }
 
+//----------------------------更新阵列总数----------------------------
+//总数可能增加(缩小会自动判断)或变化时调用
+void RP_AryArea_UpdateAryCount(struct _RP_AryArea *pArea,
+                               unsigned short NewCount)
+{
+  if(NewCount == pArea->AryCount) return;
+  pArea->AryCount = NewCount;
+  const struct _RpAryAreaDesc *pAryDesc = pArea->pAryDesc;   //项描述
+  unsigned short PageCount = pAryDesc->RowCount * pAryDesc->ColCount;
+  if((pArea->AryStart + PageCount) <= NewCount) return;//显示没超
+  //显示超了，留在最后一页
+  pArea->AryStart = NewCount - (NewCount % PageCount);
+}
+
+
 

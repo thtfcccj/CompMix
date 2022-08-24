@@ -86,6 +86,11 @@ void RP_AryArea_Task(struct _RP_AryArea *pArea);
 //用于立即重建所有数据
 void RP_AryArea_RefreshAll(struct _RP_AryArea *pArea);
 
+//----------------------------更新阵列总数----------------------------
+//总数可能增加(缩小会自动判断)或变化时调用
+void RP_AryArea_UpdateAryCount(struct _RP_AryArea *pArea,
+                               unsigned short NewCount);
+
 //-------------------------------刷新普通数据函数----------------------------
 //用于立即重建普通数据
 #define RP_AryArea_RefreshNor(area) do{(area)->RefreshTimer = 1; }while(0)
