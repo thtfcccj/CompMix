@@ -41,7 +41,7 @@ struct _SenseDesc RhDesc = {
   Rh_GetInfoBase(),  //struct _SenseInfo在EEPROM中的起始位置
   1,     //为此结构分配的ID标识
   10,    //增益使用的Q值 
-  1,     //测量的小数点位置
+  0,     //测量的小数点位置
   HUMITURE_RH_KIND_ID,      //测量物质的单位ID 
   HUMITURE_RH_UNIT_ID,       //测量物质的类型ID
   
