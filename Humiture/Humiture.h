@@ -36,15 +36,31 @@
   #define HUMITURE_RH_UNIT_ID   1  
 #endif
 
+//温湿度Q值
+#define HUMITURE_TEMP_GAIN_Q  10
+#define HUMITURE_RH_GAIN_Q    10
+
+
 /*****************************************************************************
                              相关结构
 *****************************************************************************/
 #include "Sense.h"
 
 //主结构
+struct _HumitureInfo{
+  signed short   HiTemp;       //高报温度点
+  signed short   LowTemp;      //低报温度点
+  signed char    HiRH;         //高报湿度点
+  signed char    LowRH;        //低报湿度点  
+};
+
+//主结构
 struct _Humiture{
+  struct _HumitureInfo Info;
+  //信号(含种类,单位与深度)
   struct _Sense Sense[2]; //传感器信号
   signed short FilterBuf[2][HUMITURE_FILTER_BUF_COUNT];//滤波算法缓冲区
+  //注：故障与报警交给用户以回调方式实现。
 };
 
 extern struct _Humiture Humiture;
@@ -78,11 +94,23 @@ void Humiture_Init(unsigned char IsInited); //是否已初始化
 //------------------------------------得到当前湿度------------------------------
 #define Humiture_GetRh() (Sense_GetVolInScope(&Humiture.Sense[1]))
 
+//---------------------------------得到故障状态--------------------------------
+unsigned char Humiture_GetErr(signed char IsRh);
+
 /*******************************************************************************
                            回调函数
 *******************************************************************************/
 
+//--------------------------------默认值----------------------------------
+extern const struct _HumitureInfo HumitureInfo_cbDefault;
 
+//-----------------------------得到温度报警状态---------------------------
+//由用户实现,返回0正确，1低报，2高报
+unsigned char Humiture_cbGetAlarm(signed char IsRh);
+
+//-----------------------------是否为满量程测试状态-----------------------
+//仅供外部使用,非0时，需置全部报警+满量程浓度。
+unsigned char Humiture_cbIsFullState(void);
 
 
 #endif

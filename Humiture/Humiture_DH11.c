@@ -8,6 +8,7 @@
 
 #include "Eeprom.h"
 #include "InfoBase.h"
+#include "DH11.h"
 
 struct _Humiture Humiture;
 
@@ -19,7 +20,7 @@ struct _SenseDesc TempDesc = {
   //相关信息
   Temp_GetInfoBase(),  //struct _SenseInfo在EEPROM中的起始位置
   0,       //为此结构分配的ID标识
-  10,      //增益使用的Q值 
+  HUMITURE_TEMP_GAIN_Q,      //增益使用的Q值 
   1,      //测量的小数点位置
   HUMITURE_TEMP_KIND_ID,      //测量物质的单位ID 
   HUMITURE_TEMP_UNIT_ID,       //测量物质的类型ID
@@ -40,7 +41,7 @@ struct _SenseDesc RhDesc = {
   //相关信息
   Rh_GetInfoBase(),  //struct _SenseInfo在EEPROM中的起始位置
   1,     //为此结构分配的ID标识
-  10,    //增益使用的Q值 
+  HUMITURE_RH_GAIN_Q,    //增益使用的Q值 
   0,     //测量的小数点位置
   HUMITURE_RH_KIND_ID,      //测量物质的单位ID 
   HUMITURE_RH_UNIT_ID,       //测量物质的类型ID
@@ -60,8 +61,24 @@ struct _SenseDesc RhDesc = {
 //------------------------------初始化函数-------------------------------------
 void Humiture_Init(unsigned char IsInited) //是否已初始化
 {
+  //memset(&Humiture, 0, sizeof(struct _Humiture));
+  //初始化自身
+  if(!IsInited){//装载默认
+    memcpy(&Humiture.Info, 
+           &HumitureInfo_cbDefault, 
+           sizeof(struct _HumitureInfo));
+    Eeprom_Wr(Humiture_GetInfoBase(),
+              &Humiture.Info,
+              sizeof(struct _HumitureInfo));
+  }
+  else{
+    Eeprom_Rd(Humiture_GetInfoBase(),
+              &Humiture.Info,
+              sizeof(struct _HumitureInfo));
+  }
+  
   //温度初始化
-  Sense_Init(&Humiture.Sense[0], &TempDesc, IsInited);
+  Sense_Init(&Humiture.Sense[0], &TempDesc, IsInited);  
   Sense_UpdateFilter(&Humiture.Sense[0],
                      SENSE_FILTER_TYPE_AVERVGE,//算法
                      Humiture.FilterBuf[0],//滤波缓冲区
@@ -74,6 +91,12 @@ void Humiture_Init(unsigned char IsInited) //是否已初始化
                      Humiture.FilterBuf[1],//滤波缓冲区
                      HUMITURE_FILTER_BUF_COUNT,//滤波缓冲个数
                      0);//不同滤波算法时，带入的参数
+}
+
+//---------------------------------得到故障状态--------------------------------
+unsigned char Humiture_GetErr(signed char IsRh)
+{
+  return Dh11_GetLastErr();
 }
 
 
