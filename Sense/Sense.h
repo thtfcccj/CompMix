@@ -12,6 +12,7 @@
 //  传感器在整个范围表现均衡，正存在在某点表现特殊的情况。
 //支持不同滤波算法，以及非线性校正
 //支持单点标定(标零点即x轴偏移)与两点标定(标增益即斜率)
+//此模块主要为物联网设计，仅负责数值相关，不负责其工作状态，故障，报警等功能。
 *******************************************************************************/
 #ifndef __SENSE_H
 #define __SENSE_H
@@ -45,7 +46,8 @@ struct _SenseDesc{
   signed short DefaultZero;    //默认零点原始值,用于初始化
   signed short DefaultGain;    //默认增益值,用于初始化
   signed short DefaultZeroVol; //默认零点(第一点)浓度值,用于标定
-  signed short DefaultAdjVol;  //两点标定时，默认第二点浓度值 
+  signed short DefaultAdjVol;  //两点标定时，默认第二点浓度值
+  unsigned short DiffAdjVol;   //两点标定时，第2点与第1点结果差最小值，小于此值禁止标定  
   
   //支持非线性运算时,由计算出的值到得到转换后的值
   signed short (*NlLut)(signed short OrgVol);

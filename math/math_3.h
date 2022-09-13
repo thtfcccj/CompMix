@@ -39,25 +39,25 @@ unsigned short Line_GetYInZeroMutiSU(unsigned short xz,  //直线穿过y轴的x值
                                      unsigned short MutiQ,//斜率的Q值
                                      unsigned short x);  //未知y点的x坐标
                                      
-//---------------unsigned short型数,求穿过直线上的点x坐标函数------------
+//---------------signed short型数,求穿过直线上的点x坐标函数------------
 //直线表示为:斜率和穿过y轴的x值,
 //未知点落在直线上但仅知y坐标,求x坐标
 //注1.因斜率不表示负值,故仅能计算上升沿趋势线,下降沿可通过映向x轴实现
 //注2:若点位于y轴左测,则返回为0
-unsigned short Line_GetXInZeroMutiSU(unsigned short xz,  //直线穿过y轴的x值
-                                     unsigned short Muti,//斜率
-                                     unsigned short MutiQ,//斜率的Q值
-                                     unsigned short y);  //未知y点的x坐标
+signed short Line_GetXInZeroMutiU(signed short xz,  //直线穿过y轴的x值
+                                  unsigned short Muti,//斜率
+                                  unsigned short MutiQ,//斜率的Q值
+                                  signed short y);  //未知x点的y坐标
                                      
-//---------------unsigned short型数,求穿过直线上的点x坐标函数------------
+//---------------signed short型数,求穿过直线上的点x坐标函数------------
 //直线表示为:斜率和穿过y轴的x值,
 //未知点落在直线上但仅知y坐标,求x坐标
 //注1.因斜率不表示负值,故仅能计算上升沿趋势线,下降沿可通过映向x轴实现
 //注2:若点位于y轴左测,则返回为0
-signed short Line_GetXzInZeroMutiSU(unsigned short x,  //x值
-                                     unsigned short Muti,//斜率
-                                     unsigned short MutiQ,//斜率的Q值
-                                     unsigned short y);  //x对应的点y坐标
+signed short Line_GetXzInZeroMutiU(signed short x,  //x值
+                                   unsigned short Muti,//斜率
+                                   unsigned short MutiQ,//斜率的Q值
+                                   signed short y);  //x对应的点y坐标
                                        
 //---------------unsigned short型数,求穿过直线上的点y坐标函数------------
 //直线表示为:斜率和穿过y轴的x值,

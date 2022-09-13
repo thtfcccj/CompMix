@@ -25,12 +25,13 @@ struct _SenseDesc TempDesc = {
   HUMITURE_TEMP_KIND_ID,      //测量物质的单位ID 
   HUMITURE_TEMP_UNIT_ID,       //测量物质的类型ID
   
-  0,       //量程范围最小值,超过此值将判断故障
-  60,      //量程范围最大值,超过此值将判断故障
+  HUMITURE_TEMP_MIN,   //量程范围最小值,超过此值为此值
+  HUMITURE_TEMP_MAX,   //量程范围最大值,超过此值为此值
   0,       //默认零点原始值,用于初始化
   1024,    //默认增益值,用于初始化
-  0,       //默认零点(第一点)浓度值,用于标定
-  40,      //两点标定时，默认第二点浓度值 
+  200,     //默认零点(第一点)浓度值,用于标定
+  400,     //两点标定时，默认第二点浓度值 
+  150,     //两点标定时，第2点与第1点结果差最小值，小于此值禁止标定
   
   NULL,//支持非线性运算时,由计算出的值到得到转换后的值
   NULL,//支持非线性运算时,由转换后的值,得转换前的值，主要用于校准。
@@ -48,15 +49,15 @@ struct _SenseDesc RhDesc = {
   
   0,      //量程范围最小值,超过此值将判断故障
   100,   //量程范围最大值,超过此值将判断故障
-  50,    //默认零点原始值,用于初始化
+  0,     //默认零点原始值,用于初始化
   1024,  //默认增益值,用于初始化
   50,    //默认零点(第一点)浓度值,用于标定
   80,    //两点标定时，默认第二点浓度值 
+  20,     //两点标定时，第2点与第1点结果差最小值，小于此值禁止标定
   
   NULL,//支持非线性运算时,由计算出的值到得到转换后的值
   NULL,//支持非线性运算时,由转换后的值,得转换前的值，主要用于校准。
 };
-
 
 //------------------------------初始化函数-------------------------------------
 void Humiture_Init(unsigned char IsInited) //是否已初始化
@@ -93,10 +94,29 @@ void Humiture_Init(unsigned char IsInited) //是否已初始化
                      0);//不同滤波算法时，带入的参数
 }
 
+//------------------------------准备期间判断-------------------------------------
+unsigned char Humiture_IsRdy(void)
+{
+  if(Dh11_GetLastErr() == 2) return 1;//准备期间
+  return 0;
+}
+
+//------------------------------更新故障计数-------------------------------------
+//通讯完成后调用
+void Humiture_UpdateErr(signed char IsErr)
+{
+  if(IsErr){
+    if(Humiture.ErrCount < 255) Humiture.ErrCount++;
+    return;
+  }
+  Humiture.ErrCount = 0;
+}
+
 //---------------------------------得到故障状态--------------------------------
 unsigned char Humiture_GetErr(signed char IsRh)
 {
-  return Dh11_GetLastErr();
+  if(Humiture.ErrCount >= HUMITURE_ERR_OV) return 1;
+  return 0;
 }
 
 

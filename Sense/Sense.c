@@ -85,9 +85,9 @@ void Sense_Update(struct _Sense *pSense,
     return;
   }
   //需滤波处理时，数据有效先追加到最后
+  pSense->FilterNewPos++;
   if(pSense->FilterNewPos >= FilterSize)
     pSense->FilterNewPos = 0;
-  else pSense->FilterNewPos++;
   *(pFilterBuf + pSense->FilterNewPos) = CurVol;
   //滤波处理->平均
   //if(pSense->FilterType == SENSE_FILTER_TYPE_AVERVGE){
@@ -111,28 +111,34 @@ signed char Sense_Calibration(struct _Sense *pSense,
   //以目标浓度值，反向计算源信号值(直接用信号源，可能值稳)
   signed short OrgData;
   if(pDesc->AntiNlLut != NULL) //反线性转换
-    OrgData = pDesc->AntiNlLut(TargetVol);
-  else OrgData = TargetVol;
+    OrgData = pDesc->AntiNlLut(pSense->Vol);
+  else OrgData = pSense->Vol;
   
-  unsigned short Data = Line_GetXInZeroMutiSU(pSense->Info.Zero + 32767, //直线穿过y轴的x值
-                                     pSense->Info.Gain,//斜率
-                                     pDesc->GainQ,//斜率的Q值
-                                     OrgData + 32767);  //未知y点的x坐标
-  OrgData = Data - 32767;
+  OrgData = Line_GetXInZeroMutiU(pSense->Info.Zero, //直线穿过y轴的x值
+                                 pSense->Info.Gain,//斜率
+                                 pDesc->GainQ,//斜率的Q值
+                                 OrgData);  //未知x点的y坐标
   
   //增益标定模式时，两个点计算增益值
-  if(IsGain){ 
-    pSense->Info.Gain = Line_GetMuti(pSense->PrvSignal + 32767,  //点0的x坐标
+  if(IsGain){
+    unsigned short Diff;//检查目标差，相近会影响精度，禁止标定。
+    if(pSense->PrvVol >= TargetVol) Diff = pSense->PrvVol - TargetVol;
+    else Diff =  TargetVol - pSense->PrvVol;
+    if(Diff < pDesc->DiffAdjVol) return -1;
+    
+    unsigned short Gain = Line_GetMuti(pSense->PrvSignal + 32767,  //点0的x坐标
                             pSense->PrvVol + 32767,  //点0的y坐标
                             OrgData +  32767,  //点1的x坐标
                             TargetVol + 32767,  //点1的y坐标                      
                             pDesc->GainQ); //斜率的Q值
+    if(Gain <= 0) return -1;//异常
+    pSense->Info.Gain = Gain;
   }
   //两点标定或单点标定，计算零点值
-  pSense->Info.Zero = Line_GetXzInZeroMutiSU(OrgData +  32767,  //x值
-                                     pSense->Info.Gain,//斜率
-                                     pDesc->GainQ,//斜率的Q值
-                                     TargetVol +  32767);  //x对应的点y坐标
+  pSense->Info.Zero = Line_GetXzInZeroMutiU(OrgData,  //x值
+                                            pSense->Info.Gain,//斜率
+                                            pDesc->GainQ,//斜率的Q值
+                                            TargetVol);  //x对应的点y坐标
   
   //替换上次为当前以便下次使用
   pSense->PrvSignal = OrgData;
@@ -142,6 +148,11 @@ signed char Sense_Calibration(struct _Sense *pSense,
   Eeprom_Wr(pDesc->InfoBase,
             &pSense->Info,
             sizeof(struct _SenseInfo));
+  //标定成功后，将目标浓度值给与当前以立即显示更新结果
+  pSense->Vol = TargetVol;
+  memset2((unsigned short*)pSense->pFilterBuf, 
+          (unsigned short)TargetVol, 
+          pSense->FilterSize);
   return 0;
 }
 
