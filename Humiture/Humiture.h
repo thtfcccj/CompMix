@@ -40,10 +40,18 @@
 #ifndef HUMITURE_TEMP_MAX
   #define HUMITURE_TEMP_MAX   600  
 #endif
-
 //温度最小值，高于此值为此值
 #ifndef HUMITURE_TEMP_MIN
   #define HUMITURE_TEMP_MIN   -200  
+#endif
+
+//湿度最大值，高于此值为此值
+#ifndef HUMITURE_RH_MAX
+  #define HUMITURE_RH_MAX   100  
+#endif
+//湿度最小值，高于此值为此值
+#ifndef HUMITURE_RH_MIN
+  #define HUMITURE_RH_MIN   0  
 #endif
 
 //故障计数，连接错误超过此值次报故障
@@ -111,10 +119,10 @@ void Humiture_UpdateErr(signed char IsErr);
   (Sense_Update(&Humiture.Sense[1], taget, isGain))
 
 //------------------------------------得到当前温度------------------------------
-#define Humiture_GetTemp() (Sense_GetVolInScope(&Humiture.Sense[0]))
+signed short Humiture_GetTemp(void);
 
 //------------------------------------得到当前湿度------------------------------
-#define Humiture_GetRh() (Sense_GetVolInScope(&Humiture.Sense[1]))
+signed short Humiture_GetRh(void);
 
 //---------------------------------得到故障状态--------------------------------
 unsigned char Humiture_GetErr(signed char IsRh);

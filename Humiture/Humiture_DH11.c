@@ -47,8 +47,8 @@ struct _SenseDesc RhDesc = {
   HUMITURE_RH_KIND_ID,      //测量物质的单位ID 
   HUMITURE_RH_UNIT_ID,       //测量物质的类型ID
   
-  0,      //量程范围最小值,超过此值将判断故障
-  100,   //量程范围最大值,超过此值将判断故障
+  HUMITURE_RH_MIN,   //量程范围最小值,超过此值将判断故障
+  HUMITURE_RH_MAX,   //量程范围最大值,超过此值将判断故障
   0,     //默认零点原始值,用于初始化
   1024,  //默认增益值,用于初始化
   50,    //默认零点(第一点)浓度值,用于标定
@@ -110,6 +110,20 @@ void Humiture_UpdateErr(signed char IsErr)
     return;
   }
   Humiture.ErrCount = 0;
+}
+
+//------------------------------------得到当前温度------------------------------
+signed short Humiture_GetTemp(void)
+{
+  if(Humiture_cbIsFullState()) return HUMITURE_TEMP_MAX;//满量程输出 
+  return Sense_GetVolInScope(&Humiture.Sense[0]);
+}
+
+//------------------------------------得到当前湿度------------------------------
+signed short Humiture_GetRh(void)
+{
+  if(Humiture_cbIsFullState()) return HUMITURE_RH_MAX;//满量程输出 
+  return Sense_GetVolInScope(&Humiture.Sense[1]);
 }
 
 //---------------------------------得到故障状态--------------------------------
