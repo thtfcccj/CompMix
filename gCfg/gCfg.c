@@ -11,10 +11,14 @@
 
 struct _gCfg gCfg;
 
-static const struct _gCfg _Default = {
-  GCFG_BIT_DEFAULT,
-  GCFG_BYTE_DEFAULT,
-};
+#ifdef G_CFG_EX_DEFAULT //外部没有定义时
+  extern const struct _gCfg gCfg_Default;
+#else
+  const struct _gCfg gCfg_Default = {
+    GCFG_BIT_DEFAULT,
+    GCFG_BYTE_DEFAULT,
+  };
+#endif
 
 /****************************************************************************
                              相关函数实现
@@ -26,7 +30,7 @@ void gCfg_Init(unsigned char Inited,  signed char IsHandInit)
   
   //内部变量初始化 ,仅允许首次初始化
   if(!Inited && !IsHandInit){//装载默认
-    memcpy(&gCfg, &_Default, sizeof(struct _gCfg));
+    memcpy(&gCfg, &gCfg_Default, sizeof(struct _gCfg));
     Eeprom_Wr(gCfg_GetInfoBase(),
               &gCfg,
               sizeof(struct _gCfg));
