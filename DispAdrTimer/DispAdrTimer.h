@@ -36,7 +36,7 @@ extern unsigned char DispAdrTimer;
 
 //----------------------普通任务函数-------------------------------
 //放入256ms进程中扫描
-#define DispAdrTimer_Task()  do{if(DispAdrTimer) DispAdrTimer --;}while(0)
+#define DispAdrTimer_Task()  do{if(DispAdrTimer) DispAdrTimer--;}while(0)
 
 //-----------------------------启动函数----------------------------
 #define DispAdrTimer_Start()  do{DispAdrTimer = DISP_ADR_TIMER_COUNT;}while(0)
@@ -45,5 +45,8 @@ extern unsigned char DispAdrTimer;
 
 //-------------------------是否在显示状态---------------------------
 #define DispAdrTimer_IsDisp()   (DispAdrTimer)
+
+//-------------------------主动结束显示---------------------------
+#define DispAdrTimer_EndDisp()    do{DispAdrTimer = 0;}while(0)
 
 #endif

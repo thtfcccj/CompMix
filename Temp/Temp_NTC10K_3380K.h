@@ -5,7 +5,9 @@
 *******************************************************************************/
 #ifndef __TEMP_NTC10K_3380K_H
 #define __TEMP_NTC10K_3380K_H
-
+#ifdef SUPPORT_EX_PREINCLUDE//不支持Preinlude時
+  #include "Preinclude.h"
+#endif
 /*******************************************************************************
                             相关计算 
 *******************************************************************************/
@@ -40,17 +42,25 @@
 //增益使用的Q值
 #define TEMP_GAIN_Q  15
 
-//默认温度零点AD值(样品试验结果)
-#define TEMP_DEFAULT_ZERO   -499  
+//默认温度零点AD值
+#ifndef TEMP_DEFAULT_ZERO
+  #define TEMP_DEFAULT_ZERO   -499  //3.3V 10K分压，3.3V参考AD时试验结果
+#endif  
                                      
 //默认温度增益值 Q值(样品试验结果)
-#define TEMP_DEFAULT_GAIN   1089
+#ifndef TEMP_DEFAULT_GAIN
+  #define TEMP_DEFAULT_GAIN   1089  //3.3V 10K分压，3.3V参考AD时试验结果
+#endif
 
 //温差标定时，最小温差值
-#define TEMP_DIFF_TEPM_MIN   10 
+#ifndef TEMP_DIFF_TEPM_MIN
+  #define TEMP_DIFF_TEPM_MIN   10 
+#endif 
 
 //温差标定时，最小信号值
-#define TEMP_DIFF_SIGAL_MIN  100   
+#ifndef TEMP_DIFF_SIGAL_MIN
+  #define TEMP_DIFF_SIGAL_MIN  100   
+#endif
 
 #endif
 
